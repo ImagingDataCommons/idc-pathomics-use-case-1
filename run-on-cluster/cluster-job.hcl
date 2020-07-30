@@ -11,7 +11,7 @@ job "oswe-clusterHelloWorld-PLACEHOLDER_COMMIT" {
       config {
         image = "registry.fme.lan/cluster_hello_world/oswe-clusterhelloworld:latest"
 
-        command = "/prep/_setupAndRunInsideDocker.sh"
+        command = "/prep/_setup-and-run-inside-docker.sh"
         args = ["PLACEHOLDER_COMMIT"]
         volumes = [
           "/deep_learning/input/data/oswe-clusterhelloworld:/input:ro",

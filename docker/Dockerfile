@@ -5,4 +5,4 @@ FROM python:3
 
 RUN mkdir /code
 RUN mkdir /prep
-COPY _setupAndRunInsideDocker.sh /prep/
+COPY _setup-and-run-inside-docker.sh /prep/

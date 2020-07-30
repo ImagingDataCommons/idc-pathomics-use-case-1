@@ -13,4 +13,4 @@ docker rmi registry.fme.lan/oschwen/oswe-clusterhelloworld:latest
 docker tag oswe-clusterhelloworld:latest registry.fme.lan/cluster_hello_world/oswe-clusterhelloworld:latest
 docker push registry.fme.lan/cluster_hello_world/oswe-clusterhelloworld:latest
 
-./runInCluster.sh
+./run-on-cluster.sh

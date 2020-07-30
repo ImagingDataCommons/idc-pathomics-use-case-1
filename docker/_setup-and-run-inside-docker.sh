@@ -11,4 +11,4 @@ git checkout "$1"
 # in case you wish to remove the credentials in the container (e.g., to prevent it from appearing in sumatra records)
 # sed -ie 's_https://.*gitlab.fme.lan_https://gitlab.fme.lan_' .git/config
 
-/code/actualCode/_runInsideDocker.sh
+/code/actualCode/_run-inside-docker.sh
