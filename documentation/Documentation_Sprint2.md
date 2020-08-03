@@ -17,6 +17,8 @@ Notes on Coudray's code:
 Questions: 
 * what about taking code from coudray, openslide, i.e. third party code??
 
+Notes for me: 
+* <https://stackabuse.com/pythons-classmethod-and-staticmethod-explained/>
 
 
 Code structure: 
