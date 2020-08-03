@@ -1,5 +1,5 @@
 """ 
-TODO Documentation
+TODO Documentation + Licence 
 
 <https://github.com/ncoudray/DeepPATH/blob/master/DeepPATH_code/00_preprocessing/0b_tileLoop_deepzoom4.py>
 <https://github.com/openslide/openslide-python/blob/master/examples/deepzoom/deepzoom_tile.py>
@@ -11,6 +11,7 @@ import numpy as np
 
 from multiprocessing import Process, JoinableQueue
 import openslide 
+from openslide import open_slide, ImageSlide
 from openslide.deepzoom import DeepZoomGenerator
 
 
@@ -39,7 +40,7 @@ class TileWorker(Process):
         """
         TODO 
         """ 
-        self._slide = openslide.open_slide(self._slidepath)
+        self._slide = open_slide(self._slidepath)
         last_associated = None
         dz = self._get_dz()
 
@@ -70,7 +71,7 @@ class TileWorker(Process):
         """ 
         # would OpenSlide be better??? what is meant with associated? 
         if associated is not None: 
-            image = openslide.ImageSlide(self._slide.associated_images[associated])
+            image = ImageSlide(self._slide.associated_images[associated])
         else: 
             image = self._slide 
         dz = DeepZoomGenerator(image, self._tile_size, self._overlap, limit_bounds=self._limit_bounds)
@@ -90,11 +91,102 @@ class TileWorker(Process):
 class DeepZoomImageTiler(object):
     """ 
     TODO Documentation, code is from coudray and not part of openslide example
-    Handles generation of tiles and metadata for all images in a slide.
+    Handles generation of tiles and metadata for a single image.
     """ 
+
+    def __init__(self, dz, queue, associated, basename, format):
+        self._dz = dz 
+        self._queue = queue 
+        self._associated = associated
+        self._basename = basename 
+        self._format = format  
+        self._processed = 0
+        # to be completed by things needed from coudray 
+        
+    def run(self):
+        self._write_tiles()
+        self._write_dzi()
+
+    def _write_tiles(self):
+        """
+        TODO Documentation 
+        """
+
+    def _tile_done(self):
+        self._processed = 1
+        count, total = self._processed, self._dz.tile_count 
+        if count % 100 == 0 or count == total:
+            print('Tiling %s: wrote %d/%d tiles' %(self._associated or 'slide', count, total), end='\r', file=sys.stderr)
+            if count == total:
+                print(file=sys.stderr)
+
+    def _write_dzi(self):
+        with open('%s.dzi' %(self._basename), 'w') as out:
+            out.write(self.get_dzi())
+
+    def _get_dzi(self):
+        return self._dz.get_dzi(self._format)
+
+    # other methods by coudray needed? 
+
 
 class DeepZoomStaticTiler(object): 
     """
     TODO Documentation, code is from openslide example and modified by coudray
+    Handles generation of tiles and metadata for all images in a slide. <-- images in a slide???
     """ 
 
+    def __init__(self, slidepath, basename, format, tile_size, overlap, limit_bounds, quality, workers, with_viewer):
+        self._slide = open_slide(slidepath)
+        self._basename = basename
+        self._format = format
+        self._tile_size = tile_size
+        self._overlap = overlap
+        self._limit_bounds = limit_bounds
+        self._workers = workers 
+        self._with_viewer = with_viewer
+        self._queue = JoinableQueue(2 * workers)
+        self._dzi_data = {}
+        for i in range(workers):
+            TileWorker(self._queue, slidepath, tile_size, overlap, limit_bounds, quality).start()
+
+    def run(self):
+        """
+        TODO 
+        """
+
+    def _run_image(self, associated=None):
+        """
+        TODO 
+        """
+    def _url_for(self, associated): 
+        """
+        TODO 
+        """
+    def _write_html(self): 
+        """
+        TODO 
+        """
+    def _write_static(self): 
+        """
+        TODO 
+        """
+    def _copydir(self, src, dest):
+        """
+        TODO 
+        """
+    
+    @classmethod
+    def _slugify(cls, text):
+        """
+        TODO 
+        """
+    
+    def_shutdown(self):
+        """
+        TODO 
+        """
+
+
+if __name__ == '__main__':
+    echo('Hello world')
