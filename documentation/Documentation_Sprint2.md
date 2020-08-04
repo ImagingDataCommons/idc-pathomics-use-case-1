@@ -15,7 +15,7 @@ Notes on Coudray's code:
 * they use the TFRecord datastructure which is a binary format and seems to significantly reduce processing time: https://medium.com/mostly-ai/tensorflow-records-what-they-are-and-how-to-use-them-c46bc4bbb564
 
 Questions: 
-* what about taking code from coudray, openslide, i.e. third party code??
+* 
 
 Notes for me: 
 * <https://stackabuse.com/pythons-classmethod-and-staticmethod-explained/>
