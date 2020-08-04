@@ -21,6 +21,10 @@ from unicodedata import normalize
 VIEWER_SLIDE_NAME = 'slide'
 
 
+# TODO 
+# associated images needed? ja doch, aber wozu dann der viewer?  
+#
+
 class TileWorker(Process):
     """ 
     TODO Documentation 
@@ -144,7 +148,7 @@ class DeepZoomStaticTiler(object):
 
     def __init__(self, slidepath, basename, format, tile_size, overlap, limit_bounds, quality, workers, with_viewer, background_threshold, magnification):
         self._slide = open_slide(slidepath)
-        self._basename = basename
+        self._basename = basename 
         self._format = format
         self._tile_size = tile_size
         self._overlap = overlap
@@ -172,15 +176,16 @@ class DeepZoomStaticTiler(object):
         """
         if associated is None: 
             image = self._slide 
-            if self._with_viewer:
-                basename = os.path.join(self._basename, VIEWER_SLIDE_NAME)
-            else:
-                basename = self._basename
+            #if self._with_viewer:
+            #    basename = os.path.join(self._basename, VIEWER_SLIDE_NAME)
+            #else: 
+            basename = self._basename
         
         else: 
             image = ImageSlide(self._slide.associated_images[associated])
             basename = os.path.join(self._basename, self._slugify(associated))
         
+        # Instantiate generator and image tiler
         dz = DeepZoomGenerator(image, self._tile_size, self._overlap, limit_bounds=self._limit_bounds)
         tiler = DeepZoomImageTiler(dz, self._queue, associated, basename, self._format)
         tiler.run()
@@ -229,7 +234,7 @@ class DeepZoomStaticTiler(object):
 
 
 if __name__ == '__main__':
-    parser = OptionParser(usage='Usage: %prog [options] <slide>')
+    parser = OptionParser(usage='Usage: %prog [options] <path-to-slide>')
     parser.add_option('-L', '--ignore-bounds', dest='limit_bounds', 
                 default=True, action='store_false',
                 help='display entire scan area') # default value in coudray example 
@@ -268,6 +273,6 @@ if __name__ == '__main__':
     if opts.basename is None: 
         opts.basename = os.path.splittext(os.path.basename(slidepath))[0]
 
-    # generate tiles 
+    # generate tiles using the DeepZoomStaticTiler
     DeepZoomStaticTiler(slidepath, opts.basename, opts.format, opts.tile_size, opts.overlap, opts.limit_bounds, 
                         opts.quality, opts.workers, opts.with_viewer, opts._Bkg_threshold).run()
