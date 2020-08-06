@@ -7,9 +7,11 @@ TODO Documentation + Licence
 """ 
 
 # Import libraries
+import os
+from glob import glob 
 import numpy as np 
-import os 
 import re 
+import logging 
 from optparse import OptionParser
 from multiprocessing import Process, JoinableQueue
 import openslide 
@@ -67,7 +69,7 @@ class TileWorker(Process):
             try:
                 tile = dz.get_tile(level, address)
                 # only store tile if there is enough amount of information, i.e. low amount of background
-                avg_Bkg = get_Bkg(tile)
+                avg_Bkg = self._get_Bkg(tile)
                 if avg_Bkg <= (self._background_threshold / 100.0):
                     tile.save(outfile, quality=self._quality)
                 self._queue.task_done()
@@ -104,11 +106,12 @@ class DeepZoomImageTiler(object):
     Handles generation of tiles and metadata for a single image.
     """ 
 
-    def __init__(self, dz, queue, associated, basename, format):
+    def __init__(self, dz, queue, associated, basename, basenameJPG, format):
         self._dz = dz 
         self._queue = queue 
         self._associated = associated
         self._basename = basename 
+        self.basenameJPG = basenameJPG
         self._format = format  
         self._processed = 0
         # to be completed by things needed from coudray 
@@ -124,13 +127,13 @@ class DeepZoomImageTiler(object):
         put tasks into queue 
         """
         for level in range(self._dz.level_count):
-            tiledir = os.path.join('%s_files' %(self._basename), str(level)) # replace level with magnification as coudray did 
-            if not os.path.exists(tile_directory):
+            tiledir = os.path.join('%s_files' %(self._basename), str(level)) 
+            if not os.path.exists(tiledir):
                 os.makedirs(tiledir)
             cols, rows = self._dz.level_tiles[level] # get number of tiles in this label as (nr_tiles_xAxis, nr_tiles_yAxis)
-
-            for row in rows:
-                for col in cols: 
+            print(cols, rows )
+            for row in range(rows):
+                for col in range(cols): 
                     tilename = os.path.join(tiledir, '%d_%d.%s' %(col, row, self._format))
                     if not os.path.exists(tilename):
                         self._queue.put((self._associated, level, (col,row), tilename)) # put the tiling task in the queue
@@ -146,7 +149,7 @@ class DeepZoomImageTiler(object):
 
     def _write_dzi(self):
         with open('%s.dzi' %(self._basename), 'w') as out:
-            out.write(self.get_dzi())
+            out.write(self._get_dzi())
 
     def _get_dzi(self):
         return self._dz.get_dzi(self._format)
@@ -160,9 +163,10 @@ class DeepZoomStaticTiler(object):
     Handles generation of tiles and metadata for all images in a slide. <-- images in a slide???
     """ 
 
-    def __init__(self, slidepath, basename, format, tile_size, overlap, limit_bounds, quality, workers, with_viewer, background_threshold, magnification):
+    def __init__(self, slidepath, basename, basenameJPG, format, tile_size, overlap, limit_bounds, quality, workers, with_viewer, background_threshold, magnification):
         self._slide = open_slide(slidepath)
         self._basename = basename 
+        self._basenameJPG = basenameJPG
         self._format = format
         self._tile_size = tile_size
         self._overlap = overlap
@@ -201,7 +205,7 @@ class DeepZoomStaticTiler(object):
         
         # Instantiate generator and image tiler
         dz = DeepZoomGenerator(image, self._tile_size, self._overlap, limit_bounds=self._limit_bounds)
-        tiler = DeepZoomImageTiler(dz, self._queue, associated, basename, self._format)
+        tiler = DeepZoomImageTiler(dz, self._queue, associated, basename, self._basenameJPG, self._format)
         tiler.run()
         self._dzi_data[self._url_for(associated)] = tiler._get_dzi()
 
@@ -238,7 +242,7 @@ class DeepZoomStaticTiler(object):
         text = normalize('NFKD', text.lower()).encode('ascii', 'ignore').decode()
         return re.sub('[^a-z0-9]+', '_', text)
     
-    def_shutdown(self):
+    def _shutdown(self):
         """
         TODO 
         """
@@ -248,7 +252,7 @@ class DeepZoomStaticTiler(object):
 
 
 if __name__ == '__main__':
-    parser = OptionParser(usage='Usage: %prog [options] <path-to-slide>')
+    parser = OptionParser(usage='Usage: %prog [options] <path-to-slides>')
     parser.add_option('-L', '--ignore-bounds', dest='limit_bounds', 
                 default=True, action='store_false',
                 help='display entire scan area') # default value in coudray example 
@@ -261,7 +265,7 @@ if __name__ == '__main__':
     parser.add_option('-j', '--jobs', metavar='COUNT', dest='workers',
                 type='int', default=4,
                 help='number of worker processes to start [4]')
-    parser.add_option('-o', '--output', metavar='NAME', dest='basename',
+    parser.add_option('-o', '--output', metavar='NAME', dest='output_folder',
                 help='full path to output folder')
     parser.add_option('-Q', '--quality', metavar='QUALITY', dest='quality',
                 type='int', default=90,
@@ -281,12 +285,21 @@ if __name__ == '__main__':
 
     (opts, args) = parser.parse_args()
     try:
-        slidepath = args[0]
+        slidespath = args[0]
     except IndexError:
-        parser.error('Missing slide argument')
-    if opts.basename is None: 
-        opts.basename = os.path.splittext(os.path.basename(slidepath))[0]
+        parser.error('Missing slidespath argument')
+    if opts.output_folder is None: 
+        opts.output_folder = os.path.splittext(os.path.basename(slidespath))[0]
 
-    # Generate tiles
-    DeepZoomStaticTiler(slidepath, opts.basename, opts.format, opts.tile_size, opts.overlap, opts.limit_bounds, 
-                        opts.quality, opts.workers, opts.with_viewer, opts._Bkg_threshold).run()
+    logging.info('Reading input data %s' %(slidespath))
+    slides = glob(slidespath) # get all images from the data folder
+
+    for i in range(len(slides)):
+        slidepath = slides[i]
+        opts.basenameJPG = os.path.splitext(os.path.basename(slidepath))[0] 
+        logging.info('Processing: %s' %(opts.basenameJPG))
+        basename = os.path.join(opts.output_folder, opts.basenameJPG)
+
+        # Generate tiles
+        DeepZoomStaticTiler(slidepath, basename, opts.basenameJPG, opts.format, opts.tile_size, opts.overlap, opts.limit_bounds, 
+                            opts.quality, opts.workers, opts.with_viewer, opts._background_threshold, opts.magnification).run()
