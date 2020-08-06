@@ -99,7 +99,7 @@ author: Daniela Schacherer, Fraunhofer MEVIS
     6. equilibration of training sets by undersampling (removing excess tiles in MSS class in a random way)
 
 > Open questions
-* Seems like TCGA-CRC-* are not anymore available via Genomic Data Commons/TCGA data portal? 
+* Seems like TCGA-CRC-* are not anymore available via Genomic Data Commons/TCGA data portal? → they are available as TCGA-READ and TCGA-COAD
 * For UCEC we also have only manual annotations of tumour regions? Are they available? --> they repeated the experiment using not only tumour region but the whole image and it worked as well. 
 * Details on the MSI vs. MSS annotations - is it possible to obtain them on patient level? --> See supplementary material of this paper: <<https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5966039/>
 * Resnet18 not available via Tensorflow and also not in a pre-trained mode. 
@@ -160,12 +160,10 @@ author: Daniela Schacherer, Fraunhofer MEVIS
 * Code repository: <https://github.com/ncoudray/DeepPATH>
 
 > Open questions
-* Which slides were used exactly in the respective experiments? --> what does "all lung images" from GDC mean?
-* Which were the 533 excluded slides?
-* Which genomic data were used exactly?
-* What about batch training (--> balancing the training data), Dropout techniques, layer freezing etc.?
-
-* --> code repository should answer these questions
+* Which slides were used exactly in the respective experiments? what does "all lung images" from GDC mean? --> all UUID’ are in the GDC manifest file at the code repository
+* Which were the 533 excluded slides? --> still open 
+* Which genomic data were used exactly? --> see code repository
+* What about batch training (--> balancing the training data), Dropout techniques, layer freezing etc.? --> see code repository
 
 > Contact to authors
 * Aristotelis Tsirigos: Aristotelis.Tsirigos@nyumc.org
