@@ -48,7 +48,7 @@ class TileWorker(Process):
 
     def run(self):
         """
-        TODO 
+        TODO the tiling is done here, tasks are put into the queue by DeepZoomImageTiler _write_tiles()
         """ 
         self._slide = open_slide(self._slidepath)
         last_associated = None
@@ -119,8 +119,22 @@ class DeepZoomImageTiler(object):
 
     def _write_tiles(self):
         """
-        TODO Documentation 
+        TODO Documentation: 
+        for every level 
+        put tasks into queue 
         """
+        for level in range(self._dz.level_count):
+            tiledir = os.path.join('%s_files' %(self._basename), str(level)) # replace level with magnification as coudray did 
+            if not os.path.exists(tile_directory):
+                os.makedirs(tiledir)
+            cols, rows = self._dz.level_tiles[level] # get number of tiles in this label as (nr_tiles_xAxis, nr_tiles_yAxis)
+
+            for row in rows:
+                for col in cols: 
+                    tilename = os.path.join(tiledir, '%d_%d.%s' %(col, row, self._format))
+                    if not os.path.exists(tilename):
+                        self._queue.put((self._associated, level, (col,row), tilename)) # put the tiling task in the queue
+                    self._tile_done()
 
     def _tile_done(self):
         self._processed = 1
@@ -248,7 +262,7 @@ if __name__ == '__main__':
                 type='int', default=4,
                 help='number of worker processes to start [4]')
     parser.add_option('-o', '--output', metavar='NAME', dest='basename',
-                help='base name of output file')
+                help='full path to output folder')
     parser.add_option('-Q', '--quality', metavar='QUALITY', dest='quality',
                 type='int', default=90,
                 help='JPEG compression quality [90]')
@@ -263,7 +277,7 @@ if __name__ == '__main__':
 		        help='Max background threshold [50]; percentager of background allowed')
     parser.add_option('-M', '--Mag', metavar='PIXELS', dest='magnification',
 		type='float', default=-1,
-		help='Magnification at which tiling should be done (-1 of all)') 
+		help='Magnification at which tiling should be done (-1 means at all)') 
 
     (opts, args) = parser.parse_args()
     try:
@@ -273,6 +287,6 @@ if __name__ == '__main__':
     if opts.basename is None: 
         opts.basename = os.path.splittext(os.path.basename(slidepath))[0]
 
-    # generate tiles using the DeepZoomStaticTiler
+    # Generate tiles
     DeepZoomStaticTiler(slidepath, opts.basename, opts.format, opts.tile_size, opts.overlap, opts.limit_bounds, 
                         opts.quality, opts.workers, opts.with_viewer, opts._Bkg_threshold).run()
