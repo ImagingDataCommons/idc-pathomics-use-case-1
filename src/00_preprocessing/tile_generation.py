@@ -106,15 +106,16 @@ class DeepZoomImageTiler(object):
     Handles generation of tiles and metadata for a single image.
     """ 
 
-    def __init__(self, dz, queue, associated, basename, basenameJPG, format):
+    def __init__(self, dz, slide, queue, associated, basename, basenameJPG, format, magnification):
         self._dz = dz 
+        self._slide = slide 
         self._queue = queue 
         self._associated = associated
         self._basename = basename 
-        self.basenameJPG = basenameJPG
+        self._basenameJPG = basenameJPG
         self._format = format  
+        self._magnification = magnification
         self._processed = 0
-        # to be completed by things needed from coudray 
         
     def run(self):
         self._write_tiles()
@@ -126,12 +127,28 @@ class DeepZoomImageTiler(object):
         for every level 
         put tasks into queue 
         """
-        for level in range(self._dz.level_count):
-            tiledir = os.path.join('%s_files' %(self._basename), str(level)) 
+        
+        # Get downsampling factors for the slide, information about the microscope's objective and available magnifications
+        factors = self._slide.level_downsamples
+        try: 
+            objective = float(self._slide.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])
+        except: 
+            print('%s: no objective information found' %(self._basenameJPG))
+            return 
+        available = tuple(objective/x for x in factors) # magnifications that are available
+
+        # Create the tiling tasks and put them in the queue
+        for level in range(self._dz.level_count-1, -1, -1):
+            this_magnification = available[0]/pow(2, self._dz.level_count - (level+1)) # compute the magnification depending on the recent level 
+            if self._magnification > 0: 
+                if this_magnification != self._magnification: # check if we have the desired magnification, otherwise discard 
+                    continue 
+            
+            tiledir = os.path.join('%s_files' %(self._basename), str(this_magnification)) 
             if not os.path.exists(tiledir):
                 os.makedirs(tiledir)
+            
             cols, rows = self._dz.level_tiles[level] # get number of tiles in this label as (nr_tiles_xAxis, nr_tiles_yAxis)
-            print(cols, rows )
             for row in range(rows):
                 for col in range(cols): 
                     tilename = os.path.join(tiledir, '%d_%d.%s' %(col, row, self._format))
@@ -153,8 +170,6 @@ class DeepZoomImageTiler(object):
 
     def _get_dzi(self):
         return self._dz.get_dzi(self._format)
-
-    # other methods by coudray needed? 
 
 
 class DeepZoomStaticTiler(object): 
@@ -205,7 +220,7 @@ class DeepZoomStaticTiler(object):
         
         # Instantiate generator and image tiler
         dz = DeepZoomGenerator(image, self._tile_size, self._overlap, limit_bounds=self._limit_bounds)
-        tiler = DeepZoomImageTiler(dz, self._queue, associated, basename, self._basenameJPG, self._format)
+        tiler = DeepZoomImageTiler(dz, self._slide, self._queue, associated, basename, self._basenameJPG, self._format, self._magnification)
         tiler.run()
         self._dzi_data[self._url_for(associated)] = tiler._get_dzi()
 
@@ -257,7 +272,7 @@ if __name__ == '__main__':
                 default=True, action='store_false',
                 help='display entire scan area') # default value in coudray example 
     parser.add_option('-e', '--overlap', metavar='PIXELS', dest='overlap',
-                type='int', default=1,
+                type='int', default=0,
                 help='overlap of adjacent tiles [1]')
     parser.add_option('-f', '--format', metavar='{jpeg|png}', dest='format',
                 default='jpeg',
@@ -280,8 +295,8 @@ if __name__ == '__main__':
 		        type='float', default=50,
 		        help='Max background threshold [50]; percentager of background allowed')
     parser.add_option('-M', '--Mag', metavar='PIXELS', dest='magnification',
-		type='float', default=-1,
-		help='Magnification at which tiling should be done (-1 means at all)') 
+		type='float', default=20,
+		help='Magnification at which tiling should be done (-1 means at any magnification available)') 
 
     (opts, args) = parser.parse_args()
     try:
