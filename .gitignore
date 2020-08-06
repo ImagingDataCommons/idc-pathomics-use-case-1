@@ -1,3 +1,7 @@
+# internally used scripts
+nomad_job.json
+run_on_cluster.sh
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
