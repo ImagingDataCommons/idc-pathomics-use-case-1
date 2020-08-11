@@ -7,12 +7,34 @@ based on: <https://github.com/ncoudray/DeepPATH/blob/master/DeepPATH_code/00_pre
 import os 
 from argparse import ArgumentParser
 from glob import glob
+import json
 import random 
+from collections import defaultdict
 
 # TODO 
-# - optparse variable style einheitlich und wie in tile-generation 
-# - argsparse define range of variables
+# - argsparse variable style einheitlich und wie in tile-generation 
+# - argsparse define range of variables, optional and mandatory arguments etc. 
 # - where is the mutation data stuff? 
+
+class TileSorter():
+    """ TODO""" 
+    pass
+
+
+def extract_cancer(metadata):
+    return metadata['cases'][0]['project']['project_id']
+
+def extract_sample_type(metadata):
+    return metadata['cases'][0]['samples'][0]['sample_type']
+
+def sort_type(metadata, **kwargs):
+    cancer = extract_cancer(metadata)
+    sample_type = extract_sample_type(metadata)
+    if "Normal" in sample_type:
+        return sample_type.replace(' ', '_')
+    return cancer 
+
+sort_options = [sort_type, 'test']
 
 if __name__ == '__main__':
 
@@ -27,36 +49,33 @@ if __name__ == '__main__':
      """ 
     parser = ArgumentParser(description=description)
 
-    parser.add_argument("--SourceFolder", 
-                        help="Path to the tiled images", 
-                        dest='SourceFolder')
-    parser.add_argument("--JsonFile", 
-                        help="Path to metadata file in json format", 
-                        dest='JsonFile')
+    parser.add_argument("SourceFolder", 
+                        help="Path to the tiled images")
+    parser.add_argument("JsonFile", 
+                        help="Path to metadata file in json format")
+    #parser.add_argument("--MagDiffAllowed", 
+    #                    help="difference allowed on Magnification", type=float, # probably not necessary as coudray uses 0 !! 
+    #                    dest='MagDiffAllowed')
+    parser.add_argument("SortingOption", 
+                        help="See options given in the description", type=int, choices=[0,1,2]) 
     parser.add_argument("--Magnification", 
-                        help="Magnification to use", type=float, 
+                        help="Magnification to use", type=float, default=20., 
                         dest='Magnification')
-    parser.add_argument("--MagDiffAllowed", 
-                        help="difference allowed on Magnification", type=float, # probably not necessary as coudray uses 0 !! 
-                        dest='MagDiffAllowed')
-    parser.add_argument("--SortingOption", 
-                        help="See options given in the description", type=int, 
-                        dest='SortingOption') 
     parser.add_argument("--PercentValid", 
-                        help="Percentage of images for validation (between 0 and 100)", type=float,
+                        help="Percentage of images for validation (between 0 and 100, default: 15) ", metavar='[0-100]', type=float, choices=range(0,101), default=15,
                         dest='PercentValid')
-    parser.add_argument("--PercentTest", help="Percentage of images for testing (between 0 and 100)", type=float,
+    parser.add_argument("--PercentTest", help="Percentage of images for testing (between 0 and 100, default: 15)", metavar='[0-100]', type=float, choices=range(0,101), default=15, 
                         dest='PercentTest')
     parser.add_argument("--PatientID",
                         help="Patient ID is supposed to be the first PatientID characters (integer expected) of the folder in which the pyramidal jpgs are [0]." \
                              "Slides from same patient will be in same train/test/valid set. This option is ignored if set to 0 or -1 ", type=int, default=0,
                         dest='PatientID')
     #parser.add_argument("--TMB", help="Path to json file with mutational loads; or to BRAF mutations", dest='TMB')
-    parser.add_argument("--nSplit", 
-                        help="Integer n: Split into train/test in n different ways [0].", type=int, default=0, 
-                        dest='nSplit')                                      # not yet understood what this is doing --> we do not need to modify this I guess. 
+    #parser.add_argument("--nSplit", 
+    #                    help="Integer n: Split into train/test in n different ways [0].", type=int, default=0, 
+    #                    dest='nSplit')                                      # not yet understood what this is doing --> we do not need to modify this I guess. 
     parser.add_argument("--Balance", 
-                        help="Balance datasets by: 0 - tiles (default); 1 - slides; 2 - patients (have to provide PatientID) [0]", type=int, default=0, 
+                        help="Balance datasets by: 0 - tiles (default); 1 - slides; 2 - patients (have to provide PatientID) [0]", type=int, choices=[0,1,2], default=0, 
                         dest='balance')
     #parser.add_argument("--outFilenameStats",
     #                    help="Check if the tile exists in an out_filename_Stats.txt file and copy it only if it True, or is the expLabel option had the highest probability",
@@ -68,32 +87,27 @@ if __name__ == '__main__':
     #                    help="threshold above which the probability the class should be to be considered as true (if not specified, it would be considered as true if it has the max probability). comma separated string expected",
     #                    dest='threshold')
     parser.add_argument("--outputtype",
-                        help="Type of output: list source/destination in a file (File), do symlink (Symlink, default) or both (Both)", default='Symlink',
+                        help="Type of output: list source/destination in a file (file), do symlink (symlink, default) or both (both)", choices=['file', 'symlink', 'both'], default='symlink', 
                         dest='outputtype')
 
     args = parser.parse_args()
 
-    # outputW = open('img_list.txt', 'w') check if stdout stuff should be written to a log file?!
-    # Get images
-    img_folders = glob(os.path.join(args.SourceFolder))
+    # Extract all separate image folders from the source foulder
+    args.SourceFolder = os.path.abspath(args.SourceFolder)
+    img_folders = glob(os.path.join(args.SourceFolder, '*_files'))
+    print('test', img_folders)
     random.shuffle(img_folders) # randomize order of the images
 
-    # Load metadata from the provided JSON file
-    if args.JsonFile is None: 
-        print('No metadata JSON file found.')
-        args.JsonFile = ''
-
-    if not '.json' in :
-        print('Please provide a metadata file in JSON format.')
-        break
+    # Load provided JSON file containing the metadata and prepare the information we need. 
+    if not '.json' in args.JsonFile:
+        raise ValueError('Please provide a metadata file in JSON format.')
     else: 
         with open(args.JsonFile) as json_file: 
             json_data = json.loads(json_file.read())
-        try: 
+        try:
             json_data = dict((jd['file_name'].replace('.svs', ''), jd) for jd in json_data)
-        except: 
-            json_data = dict((jd['Patient ID'], jd) for jd in json_data) ???
-    print('jdata: \n', json_data)
+        except:
+            raise KeyError('Cannot find "file_name" as key in the json data.')
 
     # Extract the sorting option 
     try: 
@@ -101,85 +115,57 @@ if __name__ == '__main__':
     except IndexError:
         raise ValueError('Unknown sorting option specified.')
 
-    # Walk through the other command line parameters --> can some of them be specified in argsparse directly???
-    if args.nSplit > 0: 
-        args.PercentValid = 100/args.nSplit
-        args.PercentTest = 0 
-    
-    args.PercentValid = args.PercentValid/100
-    args.PercentTest = args.PercentTest/100
-    if not 0 <= args.PercentValid <= 1: 
-        raise ValueError('PercentValid is not between 0 and 100.')
-    if not 0 <= args.PercentTest <= 1: 
-        raise ValueError('PercentTest is not between 0 and 100.') 
-
     
     print('==========================================================')
-    classes = {} ## category=class?
-    nr_tiles_categ =  {} # number of tiles per category
+    classes = defaultdict(list) 
+    patient_set = {}
+    nr_tiles_categ =  {} # number of tiles per category, category = train/validation/test
     percent_tiles_categ = {} # percentage of tiles per category
-
-    # Images  == slides here?? 
-    nr_images_categ = {} # number of images per category
-    percent_images_categ = {} # percentage of images per category
-
+    nr_slides_categ = {} # number of images per category
+    percent_slides_categ = {} # percentage of images per category
     nr_patients_categ = {} # number of patients per category
     percent_patients_categ = {} # percentage of patients per category
-    patient_set = {}
-    nr_slides = 0
-    ttv_split = {} #???
-    nr_valid = {} #??
-    failed_images = [] 
+    
 
     # Extract metadata for each image folder and what else?????
     for folder in img_folders:
-        nr_slides += 1
         folder_root = os.path.basename(folder).replace('_files', '')
         try:
-            image_meta = json_data[folder_root[:-1]] ## why -1?? nameLength coudray
+            image_meta = json_data[folder_root] 
         except KeyError:
-            print('File name %s not found in metadata.' %(folder_root[:-1]))
+            print('File name %s not found in metadata.' %(folder_root))
             try: 
                 image_meta = json_data[folder_root[:args.PatientID]]
             except KeyError:
                 print('File name %s not found in metadata.' %(folder_root[:args.PatientID]))
-        sub_dir = sort_function(image_meta) # parameter load_dic was ist damit? 
-        print('Sub directory is %s' %(sub_dir))
-
-        # if args.nSplit > 0 ...
-        # TODO if neccessary
-        # else: the following
-
-        set_dir = '' # ??
+        
+        sub_dir = sort_function(image_meta) # get sorting category e.g. normal, TCGA-LUAD, TCGA-LUSC
         if sub_dir is None: 
-            print('Slide is not valid for this sorting option and is skipped.)
+            print('Slide is not valid for this sorting option and is skipped.')
             continue 
         if not os.path.exists(sub_dir):
             os.makedirs(sub_dir)
+        classes[sub_dir].append(folder_root)
 
-        try:
-            classes[sub_dir].append(folder_root)
-        except KeyError:
-            classes[sub_dir] = [folder_root]
         
         # Check in the reference directories whether there is a set of tiles at the desired magnification 
-        avail_mag_dir = [x for x in os.listdir(folder) if os.path.isdir(os.path.join(folder, x))]
-        avail_mag = tuple(float(x) for x in avail_mag_dir)
-        # Check if the magnification is known for that slide --> ?????
+        avail_mag = [float(x) for x in os.listdir(folder) if os.path.isdir(os.path.join(folder, x))]
         if max(avail_mag) < 0: 
-            print('Magnification was not known for that slide. The slide is skipped. ')
+            print('Magnification not known for that slide. The slide is skipped. ')
             continue
-        # magdiffallowed comes in here, if we want to use it 
-        if float(args.Magnification) not in avail_mag: 
+        elif float(args.Magnification) not in avail_mag: 
             print('Desired magnification not available. This slide is skipped. ')
             continue 
-        avail_mag_dir = avail_mag_dir[float(args.Magnification)]
 
-        # Copy or symbolically link images into the appropriate folder-type
-        print('Symlinking tiles for subdir %s...' %(sub_dir))
-        source_dir = os.path.join(folder, avail_mag_dir, '*')
+        # Sorting tiles into the appropriate sorting category (e.g. normal, LUAD, LUSC)
+        print('Sorting tiles into subdirectory %s...' %(sub_dir))
+        source_dir = os.path.join(folder, str(args.Magnification), '*')
         all_tiles = glob(source_dir)
+        print('Number of tiles: ' + str(len(all_tiles)))
+        if len(all_tiles) == 0:
+            continue 
 
+        # Initialize statistics for balancing if not already done 
         if sub_dir in nr_tiles_categ.keys():
             pass 
         else: 
@@ -192,17 +178,17 @@ if __name__ == '__main__':
             percent_tiles_categ[sub_dir + '_valid'] = 0
             percent_tiles_categ[sub_dir + '_test'] = 0
             
-            nr_images_categ[sub_dir] = 0
-            nr_images_categ[sub_dir + '_train'] = 0
-            nr_images_categ[sub_dir + '_valid'] = 0
-            nr_images_categ[sub_dir + '_test'] = 0
+            nr_slides_categ[sub_dir] = 0
+            nr_slides_categ[sub_dir + '_train'] = 0
+            nr_slides_categ[sub_dir + '_valid'] = 0
+            nr_slides_categ[sub_dir + '_test'] = 0
             
-            percent_images_categ[sub_dir + '_train'] = 0
-            percent_images_categ[sub_dir + '_valid'] = 0
-            percent_images_categ[sub_dir + '_test'] = 0
+            percent_slides_categ[sub_dir + '_train'] = 0
+            percent_slides_categ[sub_dir + '_valid'] = 0
+            percent_slides_categ[sub_dir + '_test'] = 0
             
             nr_patients_categ[sub_dir] = 0
-            nr_patients_categ[sub_dir + '_name-list'] = 0
+            nr_patients_categ[sub_dir + '_name-list'] = {}
             nr_patients_categ[sub_dir + '_train'] = 0
             nr_patients_categ[sub_dir + '_valid'] = 0
             nr_patients_categ[sub_dir + '_test'] = 0
@@ -211,41 +197,134 @@ if __name__ == '__main__':
             percent_patients_categ[sub_dir + '_valid'] = 0
             percent_patients_categ[sub_dir + '_test'] = 0
 
-            # if nsplit > 0 goes here 
-
         nr_tiles = 0
         ttv = 'None'
-        print('number of images ' + str(len(all_tiles)))
-        if len(all_tiles) == 0:
-            continue 
         for tile_path in all_tiles:
             tile_name = os.path.basename(tile_path)
-            # here goes something with the filename stats dictionary
 
-            # balancing wrt tiles (0), slides (1), patients (2)
-            if args.Balance == 0: 
+            # Balancing wrt tiles (0), slides (1), patients (2)
+            if args.balance == 0: 
                 # rename images with the root name and put them in train/test/valid 
-                if percent_tiles_categ.get(sub_dir + '_test') <= args.PercentTest and PercentTest > 0:
+                if percent_tiles_categ.get(sub_dir + '_test') <= args.PercentTest/100 and args.PercentTest/100 > 0:
                     ttv = 'test'
-                elif percent_tiles_categ.get(sub_dir + '_valid') <= args.PercentValid and PercentValid > 0: 
+                elif percent_tiles_categ.get(sub_dir + '_valid') <= args.PercentValid/100 and args.PercentValid/100 > 0: 
                     ttv = 'valid'
                 else:
                     ttv = 'train'
-            elif args.Balance == 1: 
-                if percent_images_categ.get(sub_dir + '_test') <= args.PercentTest and PercentTest > 0:
+            elif args.balance == 1: 
+                if percent_slides_categ.get(sub_dir + '_test') <= args.PercentTest/100 and args.PercentTest/100 > 0:
                     ttv = 'test'
-                elif percent_images_categ.get(sub_dir + '_valid') <= args.PercentValid and PercentValid > 0: 
+                elif percent_slides_categ.get(sub_dir + '_valid') <= args.PercentValid/100 and args.PercentValid/100 > 0: 
                     ttv = 'valid'
                 else:
                     ttv = 'train'
             else: 
-                if percent_patients_categ.get(sub_dir + '_test') <= args.PercentTest and PercentTest > 0:
+                if percent_patients_categ.get(sub_dir + '_test') <= args.PercentTest/100 and args.PercentTest/100 > 0:
                     ttv = 'test'
-                elif percent_patients_categ.get(sub_dir + '_valid') <= args.PercentValid and PercentValid > 0: 
+                elif percent_patients_categ.get(sub_dir + '_valid') <= args.PercentValid/100 and args.PercentValid/100 > 0: 
                     ttv = 'valid'
                 else:
                     ttv = 'train'
 
+        ## ????? 
+        if args.PatientID > 0: 
+            patient = folder_root[:args.PatientID]
+        else: 
+            patient = folder_root
+            print('patient folder', patient, folder_root)
+
+            if True: 
+                # Check if patient is in this particular class 
+                if patient not in nr_patients_categ[sub_dir + '_name-list'].keys():
+                    # Check if patient in ANY class is train, valid or test 
+                    if patient in patient_set: 
+                        ttv = patient_set[patient]
+                        nr_patients_categ[sub_dir + '_name-list'][patient] = patient_set[patient]
+                    else: 
+                        patient_set[patient] = ttv 
+                        nr_patients_categ[sub_dir + '_name-list'][patient] = ttv 
+                    if nr_tiles == 1: 
+                        new_patient = True 
+
+                else: 
+                    # it is in the class -> not a new patient
+                    ttv = patient_set[patient]
+                    if nr_tiles == 1: 
+                        new_patient = False 
+                
+        new_image_dir = os.path.join(sub_dir, '_'.join((ttv, folder_root, tile_name)))
+        ### here goes the linking/writing into csv files whatever we want to do
+
+        # Update statistics
+        nr_tiles_categ[sub_dir] += nr_tiles
+        nr_slides_categ[sub_dir] += 1
+        if new_patient: 
+            nr_patients_categ[sub_dir] += 1
+
+        if ttv == 'train':
+            if new_patient: 
+                nr_patients_categ[sub_dir + '_train'] += 1
+            nr_tiles_categ[sub_dir + '_train'] += nr_tiles
+            nr_slides_categ[sub_dir + '_train'] += + 1
+        elif ttv == 'test':
+            if new_patient: 
+                nr_patients_categ[sub_dir + '_test'] += 1
+            nr_tiles_categ[sub_dir + '_test'] += nr_tiles
+            nr_slides_categ[sub_dir + '_test'] += + 1
+        elif ttv == 'valid':
+            if new_patient: 
+                nr_patients_categ[sub_dir + '_valid'] += 1
+            nr_tiles_categ[sub_dir + '_valid'] += nr_tiles
+            nr_slides_categ[sub_dir + '_valid'] += + 1
+        else:
+            continue
         
+        ### to be improved  
+        print("New Patient: " + str(new_patient))
+        print("nr_patients_categ[sub_dir]: " + str(nr_patients_categ[sub_dir]))
+        print("imgRootName: " + str(imgRootName))
+
+        percent_tiles_categ[sub_dir + '_train'] = float(nr_tiles_categ[sub_dir + '_train') / float(nr_tiles_categ[sub_dir]
+        percent_tiles_categ[sub_dir + '_test'] = float(nr_tiles_categ[sub_dir + '_test') / float(nr_tiles_categ[sub_dir]
+        percent_tiles_categ[sub_dir + '_valid'] = float(nr_tiles_categ[sub_dir + '_valid') / float(nr_tiles_categ[sub_dir]
+
+        percent_slides_categ[sub_dir + '_train'] = float(nr_slides_categ[sub_dir + '_train') / float(nr_slides_categ[sub_dir]
+        percent_slides_categ[sub_dir + '_test'] = float(nr_slides_categ[sub_dir + '_test') / float(nr_slides_categ[sub_dir]
+        percent_slides_categ[sub_dir + '_valid'] = float(nr_slides_categ[sub_dir + '_valid') / float(nr_slides_categ[sub_dir]
+        
+        percent_patients_categ[sub_dir + '_train'] = float(nr_patients_categ[sub_dir + '_train') / float(nr_patients_categ[sub_dir]
+        percent_patients_categ[sub_dir + '_test'] = float(nr_patients_categ[sub_dir + '_test') / float(nr_patients_categ[sub_dir]
+        percent_patients_categ[sub_dir + '_valid'] = float(nr_patients_categ[sub_dir + '_valid') / float(nr_patients_categ[sub_dir]
+
+
+        print("Done. %d tiles added to %s " % (nr_tiles, sub_dir))
+        print("Train / Test / Validation tiles sets for %s = %f %%  / %f %% / %f %%" % (
+            sub_dir, percent_tiles_categ[sub_dir + '_train'], percent_tiles_categ[sub_dir + '_test'], percent_tiles_categ[sub_dir + '_valid'])
+
+        print("Train / Test / Validation slides sets for %s = %f %%  / %f %% / %f %%" % (
+            sub_dir, percent_slides_categ[sub_dir + '_train'], percent_slides_categ[sub_dir + '_test'], percent_slides_categ[sub_dir + '_valid'])
+        if args.PatientID > 0:
+            print("Train / Test / Validation tiles sets for %s = %f %%  / %f %% / %f %%" % (
+                sub_dir, percent_patients_categ[sub_dir + '_train'], percent_patients_categ[sub_dir + '_test'], percent_patients_categ[sub_dir + '_valid'])
+
+    for k, v in sorted(classes.items()):
+        print('list of images in class %s :' % k)
+        print(v)
+    for k, v in sorted(nr_tiles_categ.items()):
+        print(k, v)
+    for k, v in sorted(percent_tiles_categ.items()):
+        print(k, v)
+    for k, v in sorted(nr_slides_categ.items()):
+        print(k, v)
+    if args.PatientID > 0:
+        for k, v in sorted(nr_patients_categ.items()):
+            print(k, v)
+
+
+
+        
+            
+
+            
 
 
