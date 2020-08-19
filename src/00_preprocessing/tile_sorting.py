@@ -258,8 +258,22 @@ def extract_cancer(metadata):
 def extract_sample_type(metadata):
     return metadata['cases'][0]['samples'][0]['sample_type']
 
+def sort_cancer_healthy(metadata, **kwargs):
+    """ TODO """
+    sample_type = extract_sample_type(metadata)
+    if "Normal" in sample_type:
+        return sample_type.replace(' ', '_')
+    return "cancer"
 
-def sort_type(metadata, **kwargs):
+def sort_subtype(metadata, **kwargs):
+    """ TODO """
+    sample_type = extract_sample_type(metadata)
+    if "Normal" in sample_type:
+        return None
+    return extract_cancer(metadata)
+
+def sort_subtype_healthy(metadata, **kwargs):
+    """ TODO """
     cancer = extract_cancer(metadata)
     sample_type = extract_sample_type(metadata)
     if "Normal" in sample_type:
@@ -267,8 +281,9 @@ def sort_type(metadata, **kwargs):
     return cancer 
 
 # List of the given options of how to sort the tiles
-sort_options = [sort_type, 
-                'test']
+sort_options = [sort_cancer_healthy,
+                sort_subtype,
+                sort_subtype_healthy]
 
 if __name__ == '__main__':
 
