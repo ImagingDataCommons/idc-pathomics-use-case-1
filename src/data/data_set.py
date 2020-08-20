@@ -1,9 +1,14 @@
+import csv
 import random
+
 from data.data_point import DataPoint
 
+
 class Dataset:
-    def __init__(self):
-        self.data_points = self._init_data_points()
+    def __init__(self, csv_file):
+        with open(csv_file, mode='r') as f:
+            csv_reader = csv.DictReader(f)
+            self.data_points = [DataPoint(entry['path'], int(entry['reference_value'])) for entry in csv_reader]
 
     def __len__(self):
         return len(self.data_points)
@@ -16,7 +21,3 @@ class Dataset:
             for i in indices:
                 data_point = self.data_points[i]
                 yield data_point.get_patch(), data_point.get_reference_value()
-
-    # TODO implement
-    def _init_data_points(self):
-        return [DataPoint('%d_slide' % random.randint(0,5), random.randint(0,1)) for _ in range(100)]
