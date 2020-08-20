@@ -206,8 +206,6 @@ from unicodedata import normalize
 #         self._queue.join()
 #  """
 
-
-
 def get_Bkg(tile):
         """
         TODO Documentation 
@@ -267,7 +265,6 @@ if __name__ == '__main__':
             continue 
         available = tuple(objective/x for x in factors) # magnifications that are available
 
-        # Create the tiling tasks and put them in the queue
         for level in range(dz.level_count-1, -1, -1):
             this_magnification = available[0]/pow(2, dz.level_count - (level+1)) # compute the magnification depending on the recent level  
             if this_magnification != args.magnification: # check if this is the desired magnification, otherwise move on 
