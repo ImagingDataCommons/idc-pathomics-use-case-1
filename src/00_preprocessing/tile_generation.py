@@ -42,7 +42,7 @@ def generate_tiles(slidepath, slide_name, output_path, args):
     # Tiling
     for level in range(dz.level_count-1, -1, -1):
         this_magnification = available[0]/pow(2, dz.level_count - (level+1)) # compute current magnification depending on the recent level  
-        if this_magnification != args.magnification: 
+        if this_magnification != 20.0: # our desired magnification is 20x 
             continue 
         
         tiledir = os.path.join('%s_files' %(output_path), str(this_magnification)) 
@@ -57,8 +57,19 @@ def generate_tiles(slidepath, slide_name, output_path, args):
                     tile = dz.get_tile(level, address=(col, row)) 
                     # only store tile if there is enough amount of information, i.e. low amount of background
                     avg_Bkg = get_Bkg(tile)
-                    if avg_Bkg <= (args.background_threshold / 100.0):
+                    if avg_Bkg <= 0.5: # only save the tile if less than 50% is background
                         tile.save(tilename, quality=90)
+
+
+def run(slidespath, output_folder):
+    print('Reading input data from %s' %(args.slidespath))
+    slides = glob(args.slidespath) # get all images from the data folder
+
+    for slidepath in slides:
+        slide_name = os.path.splitext(os.path.basename(slidepath))[0]
+        output_path = os.path.join(args.output_folder, slide_name)
+        print('Processing: %s' %(slide_name))
+        generate_tiles(slidepath, slide_name, output_path, args)
 
 
 if __name__ == '__main__':
@@ -68,22 +79,10 @@ if __name__ == '__main__':
     parser.add_argument('slidespath', 
                         help='Path to the input slides')
     parser.add_argument('output_folder', 
-                        help='Full path to output folder')     
-    parser.add_argument('--background', 
-                        help='Max background threshold [50]; percentage of background allowed', metavar='PIXELS', type=float, default=50, 
-                        dest='background_threshold')
-    parser.add_argument('--magnification', 
-                        help='Magnification at which tiling should be done [20]', metavar='PIXELS', choices=range(0,100), type=float, default=20, 
-                        dest='magnification')                    
+                        help='Full path to output folder')                   
 
     args = parser.parse_args()
 
-    print('Reading input data from %s' %(args.slidespath))
-    slides = glob(args.slidespath) # get all images from the data folder
+    run(slidespath, output_folder)
 
-    for slidepath in slides:
-        slide_name = os.path.splitext(os.path.basename(slidepath))[0]
-        output_path = os.path.join(args.output_folder, slide_name)
-        print('Processing: %s' %(slide_name))
-        generate_tiles(slidepath, slide_name, output_path, args)
         
