@@ -1,6 +1,7 @@
 import csv
 import os
 import random
+import numpy as np
 
 from data.data_point import DataPoint
 
@@ -16,15 +17,28 @@ class Dataset:
                     os.path.join(base_path, entry['path']),
                     int(entry['reference_value'])
                 ))
+        self.patch_width, self.patch_height, self.num_channels = self.data_points[0].get_patch().shape
 
     def __len__(self):
         return len(self.data_points)
 
-    def get_generator(self, infinite=False, shuffle=False):
-        indices = range(len(self.data_points))
-        while infinite:
+    def get_generator(self, batch_size=1, infinite=False, shuffle=False):
+        indices = list(range(len(self.data_points)))
+        while True:
             if shuffle:
                 random.shuffle(indices)
-            for i in indices:
-                data_point = self.data_points[i]
-                yield data_point.get_patch(), data_point.get_reference_value()
+
+            for batch_indices in [indices[i*batch_size : (i+1)*batch_size] for i in range(len(indices)//batch_size)]:
+
+                batch_x = np.empty((batch_size, self.patch_width, self.patch_height, self.num_channels))
+                batch_y = np.empty((batch_size))
+                
+                for batch_index, data_index in enumerate(batch_indices):
+                    data_point = self.data_points[data_index]
+                    batch_x[batch_index] = data_point.get_patch()
+                    batch_y[batch_index] = data_point.get_reference_value()
+                
+                yield batch_x, batch_y, [None]
+            
+            if not infinite:
+                break
