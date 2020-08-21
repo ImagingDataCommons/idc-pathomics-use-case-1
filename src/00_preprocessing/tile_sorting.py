@@ -1,285 +1,161 @@
-""" 
-TODO Documentation + Licence 
-based on: <https://github.com/ncoudray/DeepPATH/blob/master/DeepPATH_code/00_preprocessing/0d_SortTiles.py>
+# Step 1: build pandas dataframe -> patientID | nr_tiles | class (normal, LUSC, LUAD)
+# Step 2: assign patients into train, valid, test set
+# - assign per class
+# - assign patients such that the one with the highest nr_tiles is taken first
+# - first fill test, then validation set, rest goes into training
+# Step 3: create csv file
+# -output csv file for each test/train/valid -> slidepath, class
 
-""" 
-# Import libraries 
+# Import libraries
 import os 
 from argparse import ArgumentParser
 from glob import glob
 import json
-import random 
 from collections import defaultdict
+import pandas as pd
 
-# TODO 
-# - argsparse variable style einheitlich und wie in tile-generation 
-# - argsparse define range of variables, optional and mandatory arguments etc. 
-# - where is the mutation data stuff? 
-# - geht das mit dem new_patient nicht eleganter? 
-# - patientID glaub gar nicht nötig und ist ein fehler im example code...
-
-class TileSorter():
-    """ TODO """
-
-    def __init__(self, img_folders, json_data, arguments):
-        # Parameters 
-        self.img_folders = img_folders
-        self.json_data = json_data 
-        self.args = arguments 
-
-        # Prepare the statistics used to control balancing 
-        self.classes = defaultdict(list) 
-        self.patient_set = {}
-        self.nr_tiles_categ =  {} # number of tiles per category, category = train/validation/test
-        self.percent_tiles_categ = {} # percentage of tiles per category
-        self.nr_slides_categ = {} # number of images per category
-        self.percent_slides_categ = {} # percentage of images per category
-        self.nr_patients_categ = {} # number of patients per category
-        self.percent_patients_categ = {} # percentage of patients per category
-    
-    def _initialize_statistics(self, sorting_class): 
-        """ 
-        TODO 
-        """ 
-        if sorting_class in self.nr_tiles_categ.keys():
-            pass 
-        else: 
-            self.nr_tiles_categ[sorting_class] = 0
-            self.nr_tiles_categ[sorting_class + '_train'] = 0
-            self.nr_tiles_categ[sorting_class + '_valid'] = 0
-            self.nr_tiles_categ[sorting_class + '_test'] = 0
-            
-            self.percent_tiles_categ[sorting_class + '_train'] = 0
-            self.percent_tiles_categ[sorting_class + '_valid'] = 0
-            self.percent_tiles_categ[sorting_class + '_test'] = 0
-            
-            self.nr_slides_categ[sorting_class] = 0
-            self.nr_slides_categ[sorting_class + '_train'] = 0
-            self.nr_slides_categ[sorting_class + '_valid'] = 0
-            self.nr_slides_categ[sorting_class + '_test'] = 0
-            
-            self.percent_slides_categ[sorting_class + '_train'] = 0
-            self.percent_slides_categ[sorting_class + '_valid'] = 0
-            self.percent_slides_categ[sorting_class + '_test'] = 0
-            
-            self.nr_patients_categ[sorting_class] = 0
-            self.nr_patients_categ[sorting_class + '_name-list'] = {}
-            self.nr_patients_categ[sorting_class + '_train'] = 0
-            self.nr_patients_categ[sorting_class + '_valid'] = 0
-            self.nr_patients_categ[sorting_class + '_test'] = 0
-
-            self.percent_patients_categ[sorting_class + '_train'] = 0
-            self.percent_patients_categ[sorting_class + '_valid'] = 0
-            self.percent_patients_categ[sorting_class + '_test'] = 0
+SORTING_OPTIONS = {'1': {'normal':0, 'luad':1, 'lusc':1}, '2': {'luad':1, 'lusc':2}, '3': {'normal':0, 'luad':1, 'lusc':2}}
 
 
-    def _get_category(self, sorting_class):
-        """ TODO 
-        # Balancing wrt tiles (0), slides (1), patients (2)
-        # # rename images with the root name and put them in train/test/valid 
-        # """ 
-        if self.args.balance == 0:   
-            if self.percent_tiles_categ.get(sorting_class + '_test') <= self.args.percent_test/100 and self.args.percent_test/100 > 0:
-                ttv = 'test'
-            elif self.percent_tiles_categ.get(sorting_class + '_valid') <= self.args.percent_valid/100 and self.args.percent_valid/100 > 0: 
-                ttv = 'valid'
-            else:
-                ttv = 'train'
-        elif self.args.balance == 1: 
-            if self.percent_slides_categ.get(sorting_class + '_test') <= self.args.percent_test/100 and self.args.percent_test/100 > 0:
-                ttv = 'test'
-            elif self.percent_slides_categ.get(sorting_class + '_valid') <= self.args.percent_valid/100 and self.args.percent_valid/100 > 0: 
-                ttv = 'valid'
-            else:
-                ttv = 'train'
-        else: 
-            if percent_patients_categ.get(sorting_class + '_test') <= self.args.percent_test/100 and self.args.percent_test/100 > 0:
-                ttv = 'test'
-            elif percent_patients_categ.get(sorting_class + '_valid') <= self.args.percent_valid/100 and self.args.percent_valid/100 > 0: 
-                ttv = 'valid'
-            else:
-                ttv = 'train'
-        return ttv 
-
-    def _update_statistics(self, ttv, nr_tiles, new_patient, sorting_class): 
-        """ 
-        TODO
-        """ 
-        self._update_amounts(ttv, nr_tiles, new_patient, sorting_class)
-        self._update_percentages(sorting_class)
-    
-    def _update_amounts(self, ttv, nr_tiles, new_patient, sorting_class):
-        """ 
-        TODO
-        """ 
-        self.nr_tiles_categ[sorting_class] += nr_tiles
-        self.nr_slides_categ[sorting_class] += 1
+class statistics_tracker():
+    # Keep track of the amount of tiles in training, test and validation set
+    def __init__(self, nr_tiles):
+        self.nr_tiles_categ = {}
+        self.nr_tiles_categ['total'] = nr_tiles
+        self.nr_tiles_categ['valid'] = 0
+        self.nr_tiles_categ['test'] = 0
         
-        if new_patient: 
-            self.nr_patients_categ[sorting_class] += 1
+        self.percent_tiles_categ = {}
+        self.percent_tiles_categ['test'] = 0
+        self.percent_tiles_categ['valid'] = 0
 
-        if ttv == 'train':
-            if new_patient: 
-                self.nr_patients_categ[sorting_class + '_train'] += 1
-            self.nr_tiles_categ[sorting_class + '_train'] += nr_tiles
-            self.nr_slides_categ[sorting_class + '_train'] += + 1
-        elif ttv == 'test':
-            if new_patient: 
-                self.nr_patients_categ[sorting_class + '_test'] += 1
-            self.nr_tiles_categ[sorting_class + '_test'] += nr_tiles
-            self.nr_slides_categ[sorting_class + '_test'] += + 1
+    def assign(self, patient, nr_tiles, patient_to_category):
+        ''' Assign patient to a category: train, test or validation '''
+        if self.percent_tiles_categ['test'] < 0.15:
+            category = 'test'
+        elif self.percent_tiles_categ['valid'] < 0.15:
+            category = 'valid' 
         else:
-            if new_patient: 
-                self.nr_patients_categ[sorting_class + '_valid'] += 1
-            self.nr_tiles_categ[sorting_class + '_valid'] += nr_tiles
-            self.nr_slides_categ[sorting_class + '_valid'] += + 1
-
-
-    def _update_percentages(self, sorting_class):
-        """ 
-        TODO
-        """
-        self.percent_tiles_categ[sorting_class + '_train'] = float(self.nr_tiles_categ[sorting_class + '_train']) / float(self.nr_tiles_categ[sorting_class])
-        self.percent_tiles_categ[sorting_class + '_test'] = float(self.nr_tiles_categ[sorting_class + '_test']) / float(self.nr_tiles_categ[sorting_class])
-        self.percent_tiles_categ[sorting_class + '_valid'] = float(self.nr_tiles_categ[sorting_class + '_valid']) / float(self.nr_tiles_categ[sorting_class])
-
-        self.percent_slides_categ[sorting_class + '_train'] = float(self.nr_slides_categ[sorting_class + '_train']) / float(self.nr_slides_categ[sorting_class])
-        self.percent_slides_categ[sorting_class + '_test'] = float(self.nr_slides_categ[sorting_class + '_test']) / float(self.nr_slides_categ[sorting_class])
-        self.percent_slides_categ[sorting_class + '_valid'] = float(self.nr_slides_categ[sorting_class + '_valid']) / float(self.nr_slides_categ[sorting_class])
+            category = 'train'
         
-        self.percent_patients_categ[sorting_class + '_train'] = float(self.nr_patients_categ[sorting_class + '_train']) / float(self.nr_patients_categ[sorting_class])
-        self.percent_patients_categ[sorting_class + '_test'] = float(self.nr_patients_categ[sorting_class + '_test']) / float(self.nr_patients_categ[sorting_class])
-        self.percent_patients_categ[sorting_class + '_valid'] = float(self.nr_patients_categ[sorting_class + '_valid']) / float(self.nr_patients_categ[sorting_class])
+        patient_to_category[patient] = category
+        self._update(category, nr_tiles)
 
-    def _print_final_statistics(self): 
-        """ 
-        TODO 
-        """ 
-        for k, v in sorted(self.classes.items()):
-            print('List of images in class %s :' % k)
-            print(v)
-        for k, v in sorted(self.nr_tiles_categ.items()):
-            print(k, v)
-        for k, v in sorted(self.percent_tiles_categ.items()):
-            print(k, v)
-        for k, v in sorted(self.nr_slides_categ.items()):
-            print(k, v)
-        if self.args.patientID > 0:
-            for k, v in sorted(self.nr_patients_categ.items()):
-                print(k, v)
-
-    def run(self): 
-        # For each slide's tiles extract metadata and do the following ...
-        for folder in self.img_folders:
-            folder_root = os.path.basename(folder).replace('_files', '')
-            try:
-                image_meta = self.json_data[folder_root] 
-            except KeyError:
-                print('File name %s not found in metadata.' %(folder_root))
-                try: 
-                    image_meta = self.json_data[folder_root[:args.patientID]]
-                except KeyError:
-                    print('File name %s not found in metadata.' %(folder_root[:args.patientID]))
-            
-            # Get the information on how to sort the tiles of the considered slide. Sorting classes differ depending on the experiment that we want to do afterwards
-            sorting_class = sort_function(image_meta) # get sorting class e.g. 'normal', 'TCGA-LUAD', 'TCGA-LUSC'
-            if sorting_class is None: 
-                print('Slide is not valid for this sorting option and is skipped.')
-                continue 
-            
-            # Create folder corresponding to the sorting category if not already existent 
-            if not os.path.exists(sorting_class):
-                os.makedirs(sorting_class)
-            self.classes[sorting_class].append(folder_root) # store which slide's tiles are assigned to which sorting class 
-            
-            # Check in the reference directories whether there is a set of tiles at the desired magnification 
-            avail_mag = [float(x) for x in os.listdir(folder) if os.path.isdir(os.path.join(folder, x))]
-            if max(avail_mag) < 0: 
-                print('Magnification not known for that slide. The slide is skipped. ')
-                continue
-            elif float(args.magnification) not in avail_mag: 
-                print('Desired magnification not available. This slide is skipped. ')
-                continue 
-
-            # Sorting tiles into the appropriate sorting category (e.g. normal, LUAD, LUSC)
-            print('Sorting tiles into subdirectory %s...' %(sorting_class))
-            source_dir = os.path.join(folder, str(args.magnification), '*')
-            all_tiles = glob(source_dir)
-            print('Number of tiles: ' + str(len(all_tiles)))
-            if len(all_tiles) == 0:
-                continue 
-
-            # Initialize statistics for balancing if not already done
-            self._initialize_statistics(sorting_class)  
-
-            nr_tiles = 0 # count number of tiles to track when there is a new patient (then its nr_tiles == 1)
-            for tile_path in all_tiles:
-                nr_tiles += 1 
-                tile_name = os.path.basename(tile_path)
-                ttv = self._get_category(sorting_class) # check whether to put the tile in train, test or validation set
-
-                ## ????? 
-                if args.patientID > 0: 
-                    patient = folder_root[:args.patientID]
-                else: 
-                    patient = folder_root
-
-                # Check if patient is in this particular class --> ist das so nötig? sieht mir überflüssig aus... 
-                if patient not in self.nr_patients_categ[sorting_class + '_name-list'].keys():
-                    # Check if patient in ANY class is train, valid or test 
-                    print('ljslfd', self.patient_set)
-                    if patient in self.patient_set.keys(): 
-                        ttv = self.patient_set[patient]
-                        self.nr_patients_categ[sorting_class + '_name-list'][patient] = self.patient_set[patient]
-                    else: 
-                        self.patient_set[patient] = ttv 
-                        self.nr_patients_categ[sorting_class + '_name-list'][patient] = ttv
-                    if nr_tiles == 1: 
-                        new_patient = True 
-                else: 
-                    # it is in the class -> not a new patient
-                    ttv = self.patient_set[patient]
-                    if nr_tiles == 1: 
-                        new_patient = False 
-                        
-            new_image_dir = os.path.join(sorting_class, '_'.join((ttv, folder_root, tile_name)))
-            ### here goes the linking/writing into csv files whatever we want to do
-
-            # Update statistics
-            self._update_statistics(ttv, nr_tiles, new_patient, sorting_class)
-            print("Done. %d tiles added to %s " % (nr_tiles, sorting_class))
-
-        self._print_final_statistics()
+    def _update(self, category, nr_tiles):
+        if category in ['test', 'valid']:
+            self.nr_tiles_categ[category] += nr_tiles
+            self.percent_tiles_categ[category] = float(self.nr_tiles_categ[category] / self.nr_tiles_categ['total'])
 
 
-def extract_cancer(metadata):
-    return metadata['cases'][0]['project']['project_id']
+def is_cancer(metadata):
+    sample_type = metadata['cases'][0]['samples'][0]['sample_type']
+    if 'normal' in sample_type.lower():
+        return False
+    return True
 
-def extract_sample_type(metadata):
-    return metadata['cases'][0]['samples'][0]['sample_type']
+
+def extract_class(metadata):
+    if is_cancer(metadata):
+        subtype = metadata['cases'][0]['project']['project_id'][5:]
+        return subtype.lower()
+    else:
+        return 'normal'
+
+def get_classes(sorting_option):
+    return SORTING_OPTIONS[sorting_option]
+
+def create_patient_meta(slide_folders, json_data):
+    # Step 1
+    patient_meta = defaultdict(lambda: [0, None])
+    for folder in slide_folders:
+        slide_name = os.path.basename(folder).replace('_files', '')
+        slide_meta = json_data[slide_name] 
+        nr_tiles_slide = len([x for x in os.listdir(os.path.join(folder, '20.0')) if x.endswith('.jpeg')])
+        patientID = slide_name[:12]
+
+        # Check if we already have the information, otherwise get them
+        if patientID not in patient_meta:
+            patient_meta[patientID][0] += nr_tiles_slide
+            patient_class = extract_class(slide_meta) 
+            patient_meta[patientID][1] = patient_class
+        else: 
+            patient_meta[patientID][0] += nr_tiles_slide
+    
+    patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles', 'class']).reset_index()
+    patient_meta.rename({'index':'patientID'}, axis='columns', inplace=True)
+    patient_meta.sort_values(by=['nr_tiles'], ascending=False, inplace=True) # sort decending wrt nr_tiles
+    return patient_meta
 
 
-def sort_type(metadata, **kwargs):
-    cancer = extract_cancer(metadata)
-    sample_type = extract_sample_type(metadata)
-    if "Normal" in sample_type:
-        return sample_type.replace(' ', '_')
-    return cancer 
+def assign_patients_to_category(patient_meta, classes):
+    # Step 2
+    # Assign patients to a category (train, test, valid) separately per class 
+    patient_to_category = dict() 
+    for c in classes:
+        patient_meta_c = patient_meta[patient_meta['class'] == c] 
+        nr_all_tiles = patient_meta_c['nr_tiles'].sum()
+        statistics = statistics_tracker(nr_all_tiles)
 
-# List of the given options of how to sort the tiles
-sort_options = [sort_type, 
-                'test']
+        for i, row in patient_meta_c.iterrows():
+            patient, nr_tiles_patient = row['patientID'], row['nr_tiles']
+            statistics.assign(patient, nr_tiles_patient, patient_to_category)
+    
+    return patient_to_category
+
+
+def write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes):
+    # Step 3
+    path_train = os.path.join(output_folder, 'csv_train.csv')
+    path_test = os.path.join(output_folder, 'csv_test.csv')
+    path_valid = os.path.join(output_folder, 'csv_valid.csv')
+
+    with open(path_train, 'w') as csv_train, open(path_test, 'w') as csv_test, open(path_valid, 'w') as csv_valid:
+        output_csv = {'train': csv_train, 'test': csv_test, 'valid': csv_valid}
+        # Add header to the csv files
+        for csv in output_csv.values(): 
+            csv.write('path,reference_value\n')
+
+        # Fill csv files
+        for folder in slide_folders:
+            tiles = os.listdir(os.path.join(folder, '20.0'))
+            tiles = [os.path.join(folder, '20.0', t) for t in tiles] # get full paths 
+            tiles = [os.path.relpath(t, start=output_folder) for t in tiles] # convert to paths relative to output directory
+            for tile in tiles:
+                patient = tile.split('/')[-3][:12]
+                patient_class = patient_meta[patient_meta['patientID'] == patient]['class'].to_string(index=False).strip()
+                patient_class = str(classes[patient_class]) # get the "number" corresponding to the class
+                category = patient_to_category[patient]
+                output_csv[category].write(','.join([tile, patient_class]))
+                output_csv[category].write('\n')
+
+
+def run(source_folder, json_file, output_folder, sorting_option):
+    # Extract all slide folders from the source foulder
+    slide_folders = glob(os.path.join(args.source_folder, '*_files'))
+
+    # Load provided JSON file containing the metadata  
+    if not '.json' in args.json_file:
+        raise ValueError('Please provide a metadata file in JSON format.')
+    else: 
+        with open(args.json_file) as json_file: 
+            json_data = json.loads(json_file.read())
+            json_data = dict((jd['file_name'].replace('.svs', ''), jd) for jd in json_data) # convert to dict
+    
+    # Get classes for the chosen sorting option
+    classes = get_classes(sorting_option)
+
+    # Step 1
+    patient_meta = create_patient_meta(slide_folders, json_data)
+    # Step 2
+    patient_to_category = assign_patients_to_category(patient_meta, classes)
+    # Step 3
+    write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes)
+
 
 if __name__ == '__main__':
 
     description = """ TODO
-    we need sorting options: 
-    - classification cancer vs. normal tissue --> 6 ??
-    - classification luad vs. lusc --> 4 
-    - classification luad. vs. lusc vs. cancer --> 3 
-    - gene mutations luad 
-    Sorting options can be extended
-    
+    Always sorting >= 15 percent into test, >= 15 percent into validation and rest into training
      """ 
     parser = ArgumentParser(description=description)
 
@@ -287,54 +163,25 @@ if __name__ == '__main__':
                         help="Path to the tiled images")
     parser.add_argument("json_file", 
                         help="Path to metadata file in json format")
+    parser.add_argument("output_folder", 
+                        help="Path to output folder")
     parser.add_argument("sorting_option", 
-                        help="See options given in the description", type=int, choices=[0,1,2]) 
-    parser.add_argument("--magnification", 
-                        help="Magnification to use", type=float, default=20., 
-                        dest='magnification')
-    parser.add_argument("--percent_valid", 
-                        help="Percentage of images for validation (between 0 and 100, default: 15) ", metavar='[0-100]', type=float, choices=range(0,101), default=15,
-                        dest='percent_valid')
-    parser.add_argument("--percent_test", help="Percentage of images for testing (between 0 and 100, default: 15)", metavar='[0-100]', type=float, choices=range(0,101), default=15, 
-                        dest='percent_test')
-    parser.add_argument("--patientID",
-                        help="Patient ID is supposed to be the first PatientID characters (integer expected) of the folder in which the pyramidal jpgs are [0]." \
-                             "Slides from same patient will be in same train/test/valid set. This option is ignored if set to 0 or -1 ", type=int, default=0,
-                        dest='patientID')
-    parser.add_argument("--balance", 
-                        help="Balance datasets by: 0 - tiles (default); 1 - slides; 2 - patients (have to provide PatientID) [0]", type=int, choices=[0,1,2], default=0, 
-                        dest='balance')
+                        help="Specify the sorting option")
 
     args = parser.parse_args()
 
+    run(args.source_folder, args.json_file, args.output_folder, args.sorting_option)
     
-    # Extract all separate image folders from the source foulder
-    img_folders = glob(os.path.join(args.source_folder, '*_files'))
-    random.shuffle(img_folders) # randomize order of the images
+    
 
-    # Load provided JSON file containing the metadata and prepare the information we need. 
-    if not '.json' in args.json_file:
-        raise ValueError('Please provide a metadata file in JSON format.')
-    else: 
-        with open(args.json_file) as json_file: 
-            json_data = json.loads(json_file.read())
-        try:
-            json_data = dict((jd['file_name'].replace('.svs', ''), jd) for jd in json_data)
-        except:
-            raise KeyError('Cannot find "file_name" as key in the json data.')
+    
 
-    # Extract the sorting option 
-    try: 
-        sort_function = sort_options[args.sorting_option-1] # use -1 to transform to zero-based index
-    except IndexError:
-        raise ValueError('Unknown sorting option specified.')
+    
+    
+    
+    
 
-    # Run the sorting
-    TileSorter(img_folders, json_data, args).run()
+                
+
 
         
-            
-
-            
-
-
