@@ -1,4 +1,5 @@
 import csv
+import os
 import random
 
 from data.data_point import DataPoint
@@ -6,9 +7,15 @@ from data.data_point import DataPoint
 
 class Dataset:
     def __init__(self, csv_file):
+        self.data_points = []
+        base_path = os.path.abspath(os.path.split(csv_file)[0])
         with open(csv_file, mode='r') as f:
             csv_reader = csv.DictReader(f)
-            self.data_points = [DataPoint(entry['path'], int(entry['reference_value'])) for entry in csv_reader]
+            for entry in csv_reader:
+                self.data_points.append(DataPoint(
+                    os.path.join(base_path, entry['path']),
+                    int(entry['reference_value'])
+                ))
 
     def __len__(self):
         return len(self.data_points)
