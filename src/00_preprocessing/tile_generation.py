@@ -22,7 +22,7 @@ def get_Bkg(tile):
     return avg_Bkg
 
 
-def generate_tiles(slidepath, slide_name, output_path, args):
+def generate_tiles(slidepath, slide_name, output_path):
     """ 
     TODO 
     """
@@ -62,14 +62,14 @@ def generate_tiles(slidepath, slide_name, output_path, args):
 
 
 def run(slidespath, output_folder):
-    print('Reading input data from %s' %(args.slidespath))
-    slides = glob(args.slidespath) # get all images from the data folder
+    print('Reading input data from %s' %(slidespath))
+    slides = glob(slidespath) # get all images from the data folder
 
     for slidepath in slides:
         slide_name = os.path.splitext(os.path.basename(slidepath))[0]
-        output_path = os.path.join(args.output_folder, slide_name)
+        output_path = os.path.join(output_folder, slide_name)
         print('Processing: %s' %(slide_name))
-        generate_tiles(slidepath, slide_name, output_path, args)
+        generate_tiles(slidepath, slide_name, output_path)
 
 
 if __name__ == '__main__':
@@ -82,7 +82,6 @@ if __name__ == '__main__':
                         help='Full path to output folder')                   
 
     args = parser.parse_args()
-
-    run(slidespath, output_folder)
+    run(args.slidespath, args.output_folder)
 
         
