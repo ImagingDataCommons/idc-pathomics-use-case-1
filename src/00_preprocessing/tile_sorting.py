@@ -56,7 +56,7 @@ def create_patient_meta(slide_folders, json_data):
         else: 
             patient_meta[patientID][0] += nr_tiles
     
-    return convert_to_dataframe(patient_meta)
+    return convert_to_sorted_dataframe(patient_meta)
 
 def get_info_about_slide(folder, json_data):
     slide_name = os.path.basename(folder).replace('_files', '')
@@ -78,7 +78,7 @@ def is_cancer(metadata):
         return False
     return True
 
-def convert_to_dataframe(patient_meta):
+def convert_to_sorted_dataframe(patient_meta):
     patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles', 'class']).reset_index()
     patient_meta.rename({'index':'patientID'}, axis='columns', inplace=True)
     patient_meta.sort_values(by=['nr_tiles'], ascending=False, inplace=True) # sort decending wrt nr_tiles
