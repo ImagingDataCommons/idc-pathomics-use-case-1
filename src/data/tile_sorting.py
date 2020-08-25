@@ -14,28 +14,54 @@ import json
 from collections import defaultdict
 import pandas as pd
 
-SORTING_OPTIONS = {'1': {'normal':0, 'luad':1, 'lusc':1}, '2': {'luad':1, 'lusc':2}, '3': {'normal':0, 'luad':1, 'lusc':2}}
+SORTING_OPTIONS = {1: {'normal':0, 'luad':1, 'lusc':1}, 2: {'luad':1, 'lusc':2}, 3: {'normal':0, 'luad':1, 'lusc':2}}
 
-def run(source_folder, json_file, output_folder, sorting_option):
+def run_tile_sorting(source_folder, json_file, output_folder, sorting_option):
+    """ 
+    Sort the tiles by one of the following three options. 
+    Stores separate csv files for training, test and validation set, each in the format "path, reference_class" 
+        > 1: 'normal' vs. 'cancer'
+        > 2: 'cancer subtype LUAD' vs. 'cancer subtype LUSC'
+        > 3: 'normal' vs. 'LUAD' vs. 'LUSC'
+
+    Args:
+        source_folder (str): absolute path to the folder containing the all tiles (in separate subfolders per slide)
+        json_file (str): absolute path to JSON file containing the metadata (information about classes etc.)
+        output_folder (str): absolute path to the output folder where to store the csv files
+        sorting_option (int): one of the three above-mentioned sorting options specified by the respective identifier
+
+    Returns:
+        None
+    """
+
     # Extract all slide folders from the source foulder
-    slide_folders = glob(os.path.join(args.source_folder, '*_files'))
+    slide_folders = glob(os.path.join(source_folder, '*_files'))
 
     # Load provided JSON file containing the metadata  
-    if not '.json' in args.json_file:
+    if not '.json' in json_file:
         raise ValueError('Please provide a metadata file in JSON format.')
     else: 
-        with open(args.json_file) as json_file: 
+        with open(json_file) as json_file: 
             json_data = json.loads(json_file.read())
             json_data = dict((jd['file_name'].replace('.svs', ''), jd) for jd in json_data) # convert to dict
     
     # Get classes for the chosen sorting option
-    classes = get_classes(sorting_option)
+    try: 
+        classes = get_classes(sorting_option)
+        if sorting_option == 1: 
+            print('Sorting NORMAL vs. CANCER')
+        elif sorting_option == 2: 
+            print('Sorting LUAD vs. LUSC')
+        else: 
+            print('Sorging NORMAL vs. LUAD vs. LUSC')
+    except: 
+        raise ValueError('Please specify a valid sorting option.')
 
-    # Step 1
+    # Step 1: build internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
     patient_meta = create_patient_meta(slide_folders, json_data)
-    # Step 2
+    # Step 2: assign patients to training, valididation or test set
     patient_to_category = assign_patients_to_category(patient_meta, classes)
-    # Step 3
+    # Step 3: write output files
     write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes)
 
 
@@ -44,7 +70,6 @@ def get_classes(sorting_option):
 
 
 def create_patient_meta(slide_folders, json_data):
-    # Step 1
     patient_meta = defaultdict(lambda: [0, None]) # store nr_tiles and class per patient
 
     for folder in slide_folders:
@@ -86,7 +111,7 @@ def convert_to_sorted_dataframe(patient_meta):
 
 
 def assign_patients_to_category(patient_meta, classes):
-    # Step 2: Assign patients to a category (train, test, valid) separately per class 
+    # Assign patients to a category (training, validation, test) separately per class 
     patient_to_category = dict() 
     for c in classes:
         patient_meta_c = patient_meta[patient_meta['class'] == c] 
@@ -98,10 +123,11 @@ def assign_patients(patient_meta, patient_to_category):
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
     nr_tiles_to_valid = int(0.15 * nr_all_tiles)
 
+    # Assign patients starting with the patient with most tiles
     for i, row in patient_meta.iterrows():
         patient, nr_tiles_patient = row['patientID'], row['nr_tiles']
 
-        # Assign patient to test, validation or training set
+        # Assign patient to the test set -> if test is full,  assign to validation -> if validation is full, assign to training 
         if nr_tiles_to_test > 0: 
             category = 'test'
             nr_tiles_to_test = nr_tiles_to_test - nr_tiles_patient
@@ -116,14 +142,13 @@ def assign_patients(patient_meta, patient_to_category):
 
 
 def write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes):
-    # Step 3
     path_train = os.path.join(output_folder, 'csv_train.csv')
     path_test = os.path.join(output_folder, 'csv_test.csv')
     path_valid = os.path.join(output_folder, 'csv_valid.csv')
 
     with open(path_train, 'w') as csv_train, open(path_test, 'w') as csv_test, open(path_valid, 'w') as csv_valid:
         output_csv = {'train': csv_train, 'test': csv_test, 'valid': csv_valid}
-        # Add header to the csv files
+        # Add header
         for csv in output_csv.values(): 
             csv.write('path,reference_value\n')
 
@@ -139,7 +164,7 @@ def write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to
     
     patient = slide_folder.split('/')[-1][:12]
     patient_class = patient_meta[patient_meta['patientID'] == patient]['class'].to_string(index=False).strip()
-    patient_class = str(classes[patient_class]) # get the "number" corresponding to the class
+    patient_class = str(classes[patient_class]) 
     category = patient_to_category[patient]
     
     for tile in tiles:    
@@ -162,7 +187,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    run(args.source_folder, args.json_file, args.output_folder, args.sorting_option)
+    #run_tile_sorting(args.source_folder, args.json_file, args.output_folder, args.sorting_option)
     
     
 

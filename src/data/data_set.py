@@ -2,6 +2,7 @@ import csv
 import os
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data.data_point import DataPoint
 
