@@ -2,7 +2,7 @@
 ## First sprint (until 27/07/2020)
 see LiteratureResearch.md and ImplementationStrategy.md
 
-## Second sprint (until 24/08/2020)
+## Second sprint (until 31/08/2020)
 
 Introductory videos Genomic Data Commons: <https://gdc.cancer.gov/support>
 
