@@ -3,12 +3,13 @@ import os
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+from tensorflow.keras.utils import to_categorical
 
 from data.data_point import DataPoint
 
 
 class Dataset:
-    def __init__(self, csv_file):
+    def __init__(self, csv_file, num_classes):
         self.data_points = []
         base_path = os.path.abspath(os.path.split(csv_file)[0])
         with open(csv_file, mode='r') as f:
@@ -19,6 +20,7 @@ class Dataset:
                     int(entry['reference_value'])
                 ))
         self.patch_width, self.patch_height, self.num_channels = self.data_points[0].get_patch().shape
+        self.num_classes = num_classes
 
     def __len__(self):
         return len(self.data_points)
@@ -38,6 +40,8 @@ class Dataset:
                     data_point = self.data_points[data_index]
                     batch_x[batch_index] = data_point.get_patch()
                     batch_y[batch_index] = data_point.get_reference_value()
+                    # TODO: if nr_classes > 2, we need one-hot-encoding for the reference 
+                    # to_categorical(self.reference_value, num_classes=self.num_classes)
                 
                 yield batch_x, batch_y, [None]
             
