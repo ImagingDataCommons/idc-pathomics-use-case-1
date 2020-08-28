@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Conv2D, Dense, Flatten, Input, MaxPool2D
 from model.base_model import BaseModel
 
 
-class Model(BaseModel):
+class DummyModel(BaseModel):
     def _create_model(self, shape):
         model = Sequential()
         model.add(Input(shape=shape))
