@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
 from tensorflow.keras import Model
 
-from base_model import BaseModel
+from model.base_model import BaseModel
 
 class InceptionModel(BaseModel):
 
@@ -16,6 +16,7 @@ class InceptionModel(BaseModel):
             classifier_activation = 'softmax'
             loss = 'categorical_crossentropy'
 
+        # Use Inception v3 model by Keras and add top layers manually 
         model = tf.keras.applications.InceptionV3(include_top=False, weights=None, input_shape=(512, 512, 3))
         model = self._add_top_layers(model, classifier_activation, num_classes)
         opt = tf.keras.optimizers.RMSprop(lr=0.1, rho=0.9, momentum=0.9, epsilon=1e-6) # ensure that rho = weight decay!
