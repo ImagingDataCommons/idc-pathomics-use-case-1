@@ -21,3 +21,7 @@ Network:
 * Pre-trained: bazel build inception/imagenet_train 
 plus curl -O http://download.tensorflow.org/models/image/imagenet/inception-v3-2016-03-01.tar.gz
 > Inception v3 also available via Keras: https://keras.io/api/applications/inceptionv3/ but I am not sure whether the weights are exactly the same from 2016-03-01. 
+
+ToDo: 
+* check advantage of using logits in the loss function
+* genetic mutations chenouard
