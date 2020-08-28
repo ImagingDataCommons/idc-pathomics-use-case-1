@@ -1,11 +1,3 @@
-# Step 1: build pandas dataframe -> patientID | nr_tiles | class (normal, LUSC, LUAD)
-# Step 2: assign patients into train, valid, test set
-# - assign per class
-# - assign patients such that the one with the highest nr_tiles is taken first
-# - first fill test, then validation set, rest goes into training
-# Step 3: create csv file
-# -output csv file for each test/train/valid -> slidepath, class
-
 # Import libraries
 import os 
 from argparse import ArgumentParser
@@ -106,7 +98,6 @@ def is_cancer(metadata):
 def convert_to_sorted_dataframe(patient_meta):
     patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles', 'class']).reset_index()
     patient_meta.rename({'index':'patientID'}, axis='columns', inplace=True)
-    patient_meta.sort_values(by=['nr_tiles'], ascending=False, inplace=True) # sort decending wrt nr_tiles
     return patient_meta
 
 
@@ -123,7 +114,6 @@ def assign_patients(patient_meta, patient_to_category):
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
     nr_tiles_to_valid = int(0.15 * nr_all_tiles)
 
-    # Assign patients starting with the patient with most tiles
     for i, row in patient_meta.iterrows():
         patient, nr_tiles_patient = row['patientID'], row['nr_tiles']
 
