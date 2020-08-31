@@ -27,4 +27,34 @@ ToDo:
 * genetic mutations 
 * data point slide ID = patient ID?! yes but not necessarily. 
 * prediction separately from evaluation? 
-* evaluation also for >2 classes
+* make path structure nicer
+
+### Evaluation and Results Coudray 
+* per-slide aggregation (either by averaging tile probabilities or by counting percentages of positive tiles)
+
+* Experiment NORMAL VS TUMOR
+    * ROC curves and AUC 
+        1) per slide aggregation by averaging tile prob
+        2) per slide aggregation by counting percentages
+    * Heatmaps
+        1) Heatmaps on tile-level (probability=hue)
+
+* Experiment LUAD VS LUSC (also compared transfer learnign vs. full training, but we'll skip that)  
+    * ROC curves and AUC
+        1) per slide aggregation by averaging tile prob
+        2) per slide aggregation by counting percentages
+        3) per slide aggregation by averaging tile prob, but excluding as "normal" classified tiles (by first classifier) from the aggregation process
+    * Heatmaps
+        1) Heatmaps on tile-level (probability=hue, )
+        2) Per-tile heat-map generated after having applied a rolling mask on part of the tile (see Methods) -> to show regions where features were important for proper classification.
+
+* Experiment NORMAL VS LUAD VS LUSC 
+    * multi-class ROC curves and AUC (per slide aggregation only by average tile prob)
+        1) one-vs-rest for normal, luad and lusc, respectively, 
+        2) micro-average
+        3) macro-average
+    * Heatmaps
+        1) Heatmaps on tile-level (probability=hue, redish colours=luad, bluish colours=lusc, greyish colours=normal) 
+
+* Genetic mutations 
+    * TODO
