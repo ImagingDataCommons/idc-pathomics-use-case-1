@@ -24,5 +24,7 @@ plus curl -O http://download.tensorflow.org/models/image/imagenet/inception-v3-2
 
 ToDo: 
 * check advantage of using logits in the loss function
-* ensure that the top layers are the same in Coudray Code
 * genetic mutations 
+* data point slide ID = patient ID?! yes but not necessarily. 
+* prediction separately from evaluation? 
+* evaluation also for >2 classes

@@ -6,7 +6,8 @@ import json
 from collections import defaultdict
 import pandas as pd
 
-SORTING_OPTIONS = {1: {'normal':0, 'luad':1, 'lusc':1}, 2: {'luad':1, 'lusc':2}, 3: {'normal':0, 'luad':1, 'lusc':2}}
+SORTING_OPTIONS = {1: {'normal':0, 'luad':1, 'lusc':1}, 2: {'luad':0, 'lusc':1}, 3: {'normal':0, 'luad':1, 'lusc':2}}
+SORTING_SUFFIX = {1: 'norm_cancer', 2: 'luad_lusc', 3: 'norm_luad_lusc'}
 
 def run_tile_sorting(source_folder, json_file, output_folder, sorting_option):
     """ 
@@ -54,7 +55,7 @@ def run_tile_sorting(source_folder, json_file, output_folder, sorting_option):
     # Step 2: assign patients to training, valididation or test set
     patient_to_category = assign_patients_to_category(patient_meta, classes)
     # Step 3: write output files
-    write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes)
+    write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes, sorting_option)
 
 
 def get_classes(sorting_option):
@@ -131,10 +132,11 @@ def assign_patients(patient_meta, patient_to_category):
     return patient_to_category
 
 
-def write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes):
-    path_train = os.path.join(output_folder, 'csv_train.csv')
-    path_test = os.path.join(output_folder, 'csv_test.csv')
-    path_valid = os.path.join(output_folder, 'csv_valid.csv')
+def write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes, sorting_option):
+    suffix = SORTING_SUFFIX[sorting_option]
+    path_train = os.path.join(output_folder, 'csv_train_' + suffix + '.csv')
+    path_test = os.path.join(output_folder, 'csv_test_' + suffix + '.csv')
+    path_valid = os.path.join(output_folder, 'csv_valid_' + suffix + '.csv')
 
     with open(path_train, 'w') as csv_train, open(path_test, 'w') as csv_test, open(path_valid, 'w') as csv_valid:
         output_csv = {'train': csv_train, 'test': csv_test, 'valid': csv_valid}

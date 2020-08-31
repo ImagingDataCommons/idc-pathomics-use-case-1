@@ -21,12 +21,12 @@ class InceptionModel(BaseModel):
         model = self._add_top_layers(model, classifier_activation, num_classes)
         opt = tf.keras.optimizers.RMSprop(lr=0.1, rho=0.9, momentum=0.9, epsilon=1e-6) # ensure that rho = weight decay!
         model.compile(optimizer=opt, loss=loss)
-        return model 
+        return model
 
     def _add_top_layers(self, model, classifier_activation, num_classes):
         output = model.layers[-1].output
         output = GlobalAveragePooling2D()(output)
-        output = Dense(num_classes, activation=classifier_activation)(output)
+        output = Dense(num_classes, activation=classifier_activation, name='predictions')(output)
         return Model(model.input, output)
 
 if __name__=='__main__': 
