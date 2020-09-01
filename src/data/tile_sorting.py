@@ -59,7 +59,7 @@ def run_tile_sorting(source_folder, json_file, output_folder, sorting_option):
 
 
 def get_classes(sorting_option):
-    return SORTING_OPTIONS[sorting_option]
+    return SORTING_OPTIONS[int(sorting_option)]
 
 
 def create_patient_meta(slide_folders, json_data):
@@ -175,11 +175,11 @@ if __name__ == '__main__':
     parser.add_argument("output_folder", 
                         help="Path to output folder")
     parser.add_argument("sorting_option", 
-                        help="Specify the sorting option")
+                        help="Specify the sorting option", type=int, choices=[1,2,3])
 
     args = parser.parse_args()
 
-    #run_tile_sorting(args.source_folder, args.json_file, args.output_folder, args.sorting_option)
+    run_tile_sorting(args.source_folder, args.json_file, args.output_folder, args.sorting_option)
     
     
 
