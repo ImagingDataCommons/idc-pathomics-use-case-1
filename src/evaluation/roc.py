@@ -3,7 +3,7 @@ from sklearn.metrics import roc_curve, auc
 # for now only works with binary classification results
 def generate_roc_curve(result_df, prediction_column, positive_value=None):
     fpr, tpr, _ = roc_curve(
-        y_true = result_df['reference_value'],
+        y_true = result_df['reference_value'], # do give directly y_true and y_score to the function 
         y_score = result_df[prediction_column],
         pos_label=positive_value
     )
@@ -16,6 +16,7 @@ def generate_multiclass_roc_curves(result_df, num_classes):
     # Generate one-vs-rest ROC curves
     # Generate micro-average ROC curve
     # Generate macro-average ROC curve
+    #https://scikit-learn.org/0.15/auto_examples/plot_roc.html
     pass
 
 def plot_roc_curve(axes, result_df, prediction_column, positive_value=None):
