@@ -1,7 +1,6 @@
 from sklearn.metrics import roc_curve, auc
 
-# for now only works with binary classification results. 
-# For multiclass first extract repective class prob and convert reference values to one-vs-rest 
+# for now only works with binary classification results
 def generate_roc_curve(result_df, prediction_column, positive_value=None):
     fpr, tpr, _ = roc_curve(
         y_true = result_df['reference_value'],
@@ -11,6 +10,7 @@ def generate_roc_curve(result_df, prediction_column, positive_value=None):
     roc_auc = auc(fpr, tpr)
     return fpr, tpr, roc_auc
 
+# For multiclass first extract repective class prob and convert reference values to one-vs-rest
 def generate_multiclass_roc_curves(result_df, num_classes): 
     # Extract the different classes and check if positive_value is within 
     # Generate one-vs-rest ROC curves
