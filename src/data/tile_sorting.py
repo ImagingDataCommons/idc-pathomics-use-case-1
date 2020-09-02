@@ -51,7 +51,12 @@ def run_tile_sorting(source_folder, json_file, output_folder, sorting_option):
         raise ValueError('Please specify a valid sorting option.')
 
     # Step 1: build internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
-    patient_meta = create_patient_meta(slide_folders, json_data)
+    patient_meta_path = os.path.join(output_folder + 'patient_meta.csv')
+    if os.path.isfile(patient_meta_path): 
+        patient_meta = pd.read_csv(patient_meta_path)
+    else: 
+        patient_meta = create_patient_meta(slide_folders, json_data)
+        patient_meta.to_csv(patient_meta_path, index=False)
     # Step 2: assign patients to training, valididation or test set
     patient_to_category = assign_patients_to_category(patient_meta, classes)
     # Step 3: write output files
