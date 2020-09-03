@@ -1,9 +1,7 @@
 #!/bin/bash
 
 cd "$(dirname "$0")" # move to script directory
-
-export IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR='/home/dschacherer/Schreibtisch/testdata_in'
-export IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR='/home/dschacherer/Schreibtisch/testdata_out'
+source run_local_environment_vars.sh
 
 # check directories for mounting are set and convert to absolute path
 ( [ -d "$IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR" ] && [ -d "$IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR" ] ) || \
