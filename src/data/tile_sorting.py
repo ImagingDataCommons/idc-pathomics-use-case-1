@@ -155,18 +155,18 @@ def write_csv_files(slide_folders, output_folder, patient_meta, patient_to_categ
             
 
 def write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to_category, classes):
-    tiles = os.listdir(os.path.join(slide_folder, '20.0'))
-    tiles = [os.path.join(slide_folder, '20.0', t) for t in tiles] # get full paths 
-    tiles = [os.path.relpath(t, start=output_folder) for t in tiles] # convert to paths relative to output directory
-    
     patient = slide_folder.split('/')[-1][:12]
-    patient_class = patient_meta[patient_meta['patientID'] == patient]['class'].to_string(index=False).strip()
-    patient_class = str(classes[patient_class]) 
-    category = patient_to_category[patient]
-    
-    for tile in tiles:    
-        output_csv[category].write(','.join([tile, patient_class]))
-        output_csv[category].write('\n')
+    if patient in patient_to_category: 
+        category = patient_to_category[patient]
+        patient_class = patient_meta[patient_meta['patientID'] == patient]['class'].to_string(index=False).strip()
+        patient_class = str(classes[patient_class]) 
+        
+        tiles = os.listdir(os.path.join(slide_folder, '20.0'))
+        tiles = [os.path.join(slide_folder, '20.0', t) for t in tiles] # get full paths 
+        tiles = [os.path.relpath(t, start=output_folder) for t in tiles] # convert to paths relative to output directory
+        for tile in tiles:    
+            output_csv[category].write(','.join([tile, patient_class]))
+            output_csv[category].write('\n')
 
 
 if __name__ == '__main__':
