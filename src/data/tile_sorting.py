@@ -46,7 +46,7 @@ def run_tile_sorting(source_folder, json_file, output_folder, sorting_option):
         elif sorting_option == 2: 
             print('Sorting LUAD vs. LUSC')
         else: 
-            print('Sorging NORMAL vs. LUAD vs. LUSC')
+            print('Sorting NORMAL vs. LUAD vs. LUSC') 
     except: 
         raise ValueError('Please specify a valid sorting option.')
 
