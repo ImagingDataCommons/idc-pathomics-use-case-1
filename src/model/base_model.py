@@ -34,7 +34,7 @@ class BaseModel:
             validation_generator = None
             validation_steps = None
 
-        self.model.fit(
+        history = self.model.fit(
             training_generator,
             epochs=epochs,
             max_queue_size=100,
@@ -42,7 +42,7 @@ class BaseModel:
             validation_data=validation_generator,
             validation_steps=validation_steps
         )
-
+        return history
 
     def predict(self, data_point):
         # add batch dimension
