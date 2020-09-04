@@ -56,7 +56,9 @@ def generate_roc_curve(reference, prediction):
 
 
 def generate_macro_average_roc():
-    """ TODO """ 
+    """ TODO """
+    # https://scikit-learn.org/0.15/auto_examples/plot_roc.html
+    # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
     pass 
 
 
