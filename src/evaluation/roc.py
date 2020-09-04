@@ -1,50 +1,94 @@
+import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
+from sklearn.preprocessing import label_binarize
 
-# for now only works with binary classification results
-def generate_roc_curve(result_df, prediction_column, positive_value=None):
+def evaluate_by_roc_curve(fig, result_df):
+    # Get number of classes
+    if type(result_df['average_probability'][0]) != list:
+        num_classes = 2
+    else: 
+        num_classes = len(result_df['average_probability'][0])
+
+    # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC
+    if num_classes > 2: 
+        fpr, tpr, roc_auc = generate_multiclass_roc_curves(result_df, num_classes)
+        plot_roc_curves(fig, fpr, tpr, roc_auc)
+    
+    # Two-class ROC curve, consider both averaging methods, i.e. average_probability and percentage_positive
+    else: 
+        fpr = {}
+        tpr = {}
+        roc_auc = {}
+        reference = result_df['reference_value'].tolist()
+        fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = generate_roc_curve(reference, prediction=result_df['average_probability'].tolist())
+        fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = generate_roc_curve(reference, prediction=result_df['percentage_positive'].tolist())
+        plot_roc_curves(fig, fpr, tpr, roc_auc)
+
+
+def generate_multiclass_roc_curves(result_df, num_classes): 
+    # Binarize the reference values 
+    reference = label_binarize(result_df['reference_value'].tolist(), classes=[i for i in range(num_classes)])
+
+    # Compute ROC curve and ROC area for each class
+    fpr = {}
+    tpr = {}
+    roc_auc = {}
+    for i in range(num_classes):
+        prediction = [x[i] for x in result_df['average_probability']]
+        fpr[i], tpr[i], roc_auc[i] = generate_roc_curve(reference[:, i], prediction)
+    
+    # Generate micro-average and macro-average ROC curve
+    all_predictions = [i for x in result_df['average_probability'] for i in x]
+    fpr['micro'], tpr['micro'], roc_auc['micro'] = generate_roc_curve(reference.ravel(), all_predictions)
+    
+    # TODO generate_macro_average_roc()
+    
+    return fpr, tpr, roc_auc 
+
+
+def generate_roc_curve(reference, prediction):
     fpr, tpr, _ = roc_curve(
-        y_true = result_df['reference_value'], # do give directly y_true and y_score to the function 
-        y_score = result_df[prediction_column],
-        pos_label=positive_value
+        y_true = reference,
+        y_score = prediction
     )
     roc_auc = auc(fpr, tpr)
     return fpr, tpr, roc_auc
 
-# For multiclass first extract repective class prob and convert reference values to one-vs-rest
-def generate_multiclass_roc_curves(result_df, num_classes): 
-    # Extract the different classes and check if positive_value is within 
-    # Generate one-vs-rest ROC curves
-    # Generate micro-average ROC curve
-    # Generate macro-average ROC curve
-    #https://scikit-learn.org/0.15/auto_examples/plot_roc.html
-    pass
 
-def plot_roc_curve(axes, result_df, prediction_column, positive_value=None):
-    fpr, tpr, roc_auc = generate_roc_curve(result_df, prediction_column, positive_value)
+def generate_macro_average_roc():
+    """ TODO """ 
+    pass 
 
-    axes.plot(
-        fpr,
-        tpr,
-        color='darkorange',
-        linewidth=2,
-        label='ROC curce (area = %0.2f)' % roc_auc
-    )
-    axes.plot(
+
+def plot_roc_curves(axes, fpr, tpr, roc_auc):
+    # Plot bisector
+    plt.plot(
         [0, 1],
         [0, 1],
         color='navy',
         linewidth=2,
         linestyle='--'
     )
-    axes.set_xlim([0.0, 1.0])
-    axes.set_ylim([0.0, 1.05])
-    axes.set_xlabel('False Positive Rate')
-    axes.set_ylabel('True Positive Rate')
-    axes.set_title('Receiver operating characteristic for "%s"' % prediction_column)
-    axes.legend(loc="lower right")
 
-if __name__ == '__main__':
-    y_true_test = [1, 0, 2]
-    y_pred_test = [0.3, 0.5, 0.7]
-    fpr, tpr, thres = roc_curve(y_true_test, y_pred_test, 1)
-    print(fpr, tpr, thres)
+    # Plot ROC curves
+    colors = ['orange', 'royalblue', 'red', 'yellowgreen', 'yellow', 'magenta', 'aqua', 'green', 'burlywood', 'black']
+    averaging_method = 'avg_prob'
+    for i, key in enumerate(fpr):
+        if key == 'percentage_positive': 
+            averaging_method = 'per_pos'
+        plt.plot(
+            fpr[key],
+            tpr[key],
+            color=colors[i],
+            linewidth=2,
+            label='ROC curve [%s] (area = %0.2f)' % (averaging_method, roc_auc[key])
+        )
+    
+    """ TODO: add class for multiclass roc curves """ 
+
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic')
+    plt.legend(loc="lower right")
