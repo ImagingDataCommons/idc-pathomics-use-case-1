@@ -13,8 +13,8 @@ def per_slide_evaluation(model, data_set):
                 'predictions': []
             }
             
-        #prediction = model.predict(data_point) # frage: kommt bei n=2 dann der eine Wert auch als np datentyp raus? ist das ev. egal? sollte als list oder single value rauskommen
-        prediction = 0.3
+        prediction = model.predict(data_point) 
+        #prediction = [0.3, 0.5, 0.2]
         slide_results[slide_id]['num_patches'] += 1
         slide_results[slide_id]['predictions'].append(prediction)
 

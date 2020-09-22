@@ -1,7 +1,7 @@
 import numpy as np
 from evaluation.evaluation import per_slide_evaluation
 from data.data_set import Dataset
-from evaluation.roc import main
+from evaluation.roc import evaluate_by_roc_curve
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
@@ -9,5 +9,5 @@ if __name__ == '__main__':
     res=per_slide_evaluation('dummy', test_dataset)
     print(res)
     fig = plt.figure()
-    main(fig, res)
+    evaluate_by_roc_curve(fig, res)
     plt.show()

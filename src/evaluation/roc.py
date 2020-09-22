@@ -1,15 +1,17 @@
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import label_binarize
+from scipy import interp
 
 def evaluate_by_roc_curve(fig, result_df):
     # Get number of classes
-    if type(result_df['average_probability'][0]) != list:
+    if not isinstance(result_df['average_probability'][0], (list, np.ndarray)):
         num_classes = 2
     else: 
         num_classes = len(result_df['average_probability'][0])
 
-    # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC
+    # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC, only for averaging method 'average_probability'
     if num_classes > 2: 
         fpr, tpr, roc_auc = generate_multiclass_roc_curves(result_df, num_classes)
         plot_roc_curves(fig, fpr, tpr, roc_auc)
@@ -37,11 +39,11 @@ def generate_multiclass_roc_curves(result_df, num_classes):
         prediction = [x[i] for x in result_df['average_probability']]
         fpr[i], tpr[i], roc_auc[i] = generate_roc_curve(reference[:, i], prediction)
     
-    # Generate micro-average and macro-average ROC curve
+    # Generate macro-average and micro-average ROC curve
+    fpr['macro'], tpr['macro'], roc_auc['macro'] = generate_macro_average_roc(tpr, fpr, num_classes)
+
     all_predictions = [i for x in result_df['average_probability'] for i in x]
     fpr['micro'], tpr['micro'], roc_auc['micro'] = generate_roc_curve(reference.ravel(), all_predictions)
-    
-    # TODO generate_macro_average_roc()
     
     return fpr, tpr, roc_auc 
 
@@ -55,11 +57,18 @@ def generate_roc_curve(reference, prediction):
     return fpr, tpr, roc_auc
 
 
-def generate_macro_average_roc():
-    """ TODO """
-    # https://scikit-learn.org/0.15/auto_examples/plot_roc.html
-    # https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
-    pass 
+def generate_macro_average_roc(tpr, fpr, num_classes):
+    # Aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(num_classes)]))
+    
+    # Interpolate true positive rate at the respective false positive rate
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(num_classes):
+        mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+    mean_tpr = mean_tpr/num_classes  
+    
+    roc_auc = auc(all_fpr, mean_tpr)
+    return all_fpr, mean_tpr, roc_auc 
 
 
 def plot_roc_curves(axes, fpr, tpr, roc_auc):
@@ -73,7 +82,7 @@ def plot_roc_curves(axes, fpr, tpr, roc_auc):
     )
 
     # Plot ROC curves
-    colors = ['orange', 'royalblue', 'red', 'yellowgreen', 'yellow', 'magenta', 'aqua', 'green', 'burlywood', 'black']
+    colors = ['orange', 'royalblue', 'red', 'yellowgreen', 'yellow', 'magenta', 'aqua', 'green', 'burlywood', 'grey']
     averaging_method = 'avg_prob'
     for i, key in enumerate(fpr):
         if key == 'percentage_positive': 
@@ -83,7 +92,7 @@ def plot_roc_curves(axes, fpr, tpr, roc_auc):
             tpr[key],
             color=colors[i],
             linewidth=2,
-            label='ROC curve [%s] (area = %0.2f)' % (averaging_method, roc_auc[key])
+            label='%s [%s] (area = %0.2f)' % (key, averaging_method, roc_auc[key])
         )
     
     """ TODO: add class for multiclass roc curves """ 
