@@ -27,7 +27,7 @@ ToDo:
 * genetic mutations 
 * data point slide ID = patient ID?! yes but not necessarily. 
 * prediction separately from evaluation? 
-* make path structure nicer
+* make path structure for tiles nicer
 
 ### Evaluation and Results Coudray 
 * per-slide aggregation (either by averaging tile probabilities or by counting percentages of positive tiles)
