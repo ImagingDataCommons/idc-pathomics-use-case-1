@@ -5,7 +5,11 @@ from model.base_model import BaseModel
 
 
 class DummyModel(BaseModel):
-    def _create_model(self, shape):
+    def _create_model(self, shape=(3,512,512), load_trained_model_from=None):
+        if load_trained_model_from: 
+            model = load_model(load_trained_model_from)
+            return model
+
         model = Sequential()
         model.add(Input(shape=shape))
         model.add(Conv2D(32, (3,3), activation='relu'))
