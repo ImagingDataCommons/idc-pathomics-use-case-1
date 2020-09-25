@@ -11,6 +11,9 @@ class InceptionModel(BaseModel):
         # Load already trained model if the path is given
         if load_trained_model_from: 
             model = load_model(load_trained_model_from)
+            opt=tf.keras.optimizers.RMSprop(lr=0.1, rho=0.9, momentum=0.9, epsilon=1e-6) # ensure that rho = weight decay!
+            loss='binary_crossentropy'
+            model.compile()
             return model 
 
         # Binary classification problem: we use single output value obtained from a sigmoid layer instead of two output values from a softmax layer
