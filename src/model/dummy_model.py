@@ -1,5 +1,6 @@
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, Input, MaxPool2D
+from tensorflow.keras.models import load_model
 
 from model.base_model import BaseModel
 
