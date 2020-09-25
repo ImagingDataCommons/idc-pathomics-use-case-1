@@ -44,7 +44,7 @@ class BaseModel:
         )
         return history
 
-    def predict(self, data_point):
+    def make_prediction(self, data_point):
         # add batch dimension
         patch = data_point.get_patch()[np.newaxis, ...]
         prediction = self.model.predict(patch)
