@@ -9,6 +9,7 @@ class DummyModel(BaseModel):
     def _create_model(self, shape, load_trained_model_from=None):
         if load_trained_model_from: 
             model = load_model(load_trained_model_from, compile=True)
+            model.build(shape)
             return model
 
         model = Sequential()
