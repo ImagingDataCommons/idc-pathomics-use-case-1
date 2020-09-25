@@ -8,7 +8,7 @@ from model.base_model import BaseModel
 class DummyModel(BaseModel):
     def _create_model(self, shape=(512,512,3), load_trained_model_from=None):
         if load_trained_model_from: 
-            model = load_model(load_trained_model_from)
+            model = load_model(load_trained_model_from, compile=True)
             return model
 
         model = Sequential()
