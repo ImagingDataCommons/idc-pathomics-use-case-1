@@ -10,7 +10,7 @@ class InceptionModel(BaseModel):
     def _create_model(self, num_classes=2, load_trained_model_from=None):
         # Load already trained model if the path is given
         if load_trained_model_from: 
-            model = load_model(load_trained_model_from, compile=True)
+            model = load_model(load_trained_model_from)
             return model 
 
         # Binary classification problem: we use single output value obtained from a sigmoid layer instead of two output values from a softmax layer
