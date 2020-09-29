@@ -5,14 +5,16 @@ from evaluation.roc import evaluate_by_roc_curve
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 from model.inceptionv3_model import InceptionModel
+from model.dummy_model import DummyModel
 
 if __name__ == '__main__':
-    #test_dataset = Dataset('/home/dschacherer/Schreibtisch/testdata_out/csv_test_norm_cancer.csv', num_classes=3)
-    #res=per_slide_evaluation('dummy', test_dataset)
-    #print(res)
-    #fig = plt.figure()
-    #evaluate_by_roc_curve(fig, res)
-    #plt.show()
+    test_dataset = Dataset('/home/dschacherer/Schreibtisch/testdata_out/csv_test_norm_cancer.csv', num_classes=3)
+    model = DummyModel(shape=(512,512,3), load_trained_model_from='/home/dschacherer/Schreibtisch/testdata_out/trained_model')
+    res=per_slide_evaluation(model, test_dataset)
+    print(res)
+    fig = plt.figure()
+    evaluate_by_roc_curve(fig, res)
+    plt.show()
 
     #import json
     #import matplotlib.pyplot as plt
@@ -25,6 +27,6 @@ if __name__ == '__main__':
     #    plt.ylabel('cross entropy loss')
     #    plt.legend(loc='upper right')
     #    plt.savefig('/home/dschacherer/Schreibtisch/loss.png')
-    print('hello')
-    model = load_model('/mnt/gaia/imageData/deep_learning/output/imaging-data-commons/idc-pathomics-use-case-1/trained_model', compile=True)
-    print(model)
+    #print('hello')
+    #model = load_model('/mnt/gaia/imageData/deep_learning/output/imaging-data-commons/idc-pathomics-use-case-1/trained_model', compile=True)
+    #print(model)
