@@ -42,10 +42,11 @@ def per_slide_evaluation(model, data_set):
 
 
 def get_num_classes(predictions):
-    print(predictions)
     try: 
         num_classes = predictions.shape[1]
-        print('num', num_classes)
+        if num_classes == 1:
+            num_classes = 2
+            return num_classes
     except: 
         num_classes = 2
     return num_classes
