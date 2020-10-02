@@ -5,7 +5,6 @@ from sklearn.preprocessing import label_binarize
 from scipy import interp
 
 def evaluate_by_roc_curve(fig, result_df):
-    print(result_df.head())
     # Get number of classes
     if not isinstance(result_df['average_probability'][0], (list, np.ndarray)):
         num_classes = 2
@@ -23,7 +22,6 @@ def evaluate_by_roc_curve(fig, result_df):
         tpr = {}
         roc_auc = {}
         reference = result_df['reference_value'].tolist()
-        print('test',result_df['percentage_positive'].tolist())
         fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = generate_roc_curve(reference, prediction=result_df['average_probability'].tolist())
         fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = generate_roc_curve(reference, prediction=result_df['percentage_positive'].tolist())
         plot_roc_curves(fig, fpr, tpr, roc_auc)
