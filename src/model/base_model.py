@@ -1,8 +1,8 @@
 import os
 import random
 import numpy as np
-import tensorflow as tf 
-from tf.keras.callbacks import ModelCheckpoint
+import tensorflow as tf
+from tensorflow.keras.callbacks import ModelCheckpoint
 
 
 class BaseModel:
