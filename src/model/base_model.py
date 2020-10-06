@@ -35,8 +35,9 @@ class BaseModel:
             validation_generator = None
             validation_steps = None
 
+        checkpoint_path = '/output/checkpoint'
         callback = ModelCheckpoint(
-            filepath='/output/trained_model_intermediate2', 
+            filepath=checkpoint_path, 
             save_weights_only=False, 
             monitor='val_loss', 
             mode='min',
