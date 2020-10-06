@@ -35,7 +35,7 @@ class BaseModel:
             validation_generator = None
             validation_steps = None
 
-        callbacks = ModelCheckpoint(
+        callback = ModelCheckpoint(
             filepath='/output/trained_model_intermediate2', 
             save_weights_only=False, 
             monitor='val_loss', 
@@ -50,7 +50,7 @@ class BaseModel:
             steps_per_epoch=len(training_dataset)//batch_size,
             validation_data=validation_generator,
             validation_steps=validation_steps, 
-            callbacks=callbacks
+            callbacks=[callback]
         )
         return history
 
