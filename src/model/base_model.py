@@ -1,6 +1,7 @@
 import os
 import random
 import numpy as np
+import tensorflow as tf 
 from tf.keras.callbacks import ModelCheckpoint
 
 
