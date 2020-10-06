@@ -34,13 +34,22 @@ class BaseModel:
             validation_generator = None
             validation_steps = None
 
+        callbacks = ModelCheckpoint(
+            filepath='/output/trained_model_intermediate2', 
+            save_weights_only=False, 
+            monitor='val_loss', 
+            mode='min',
+            save_best_only=True
+        )
+
         history = self.model.fit(
             training_generator,
             epochs=epochs,
             max_queue_size=100,
             steps_per_epoch=len(training_dataset)//batch_size,
             validation_data=validation_generator,
-            validation_steps=validation_steps
+            validation_steps=validation_steps, 
+            callbacks=callbacks
         )
         return history
 
