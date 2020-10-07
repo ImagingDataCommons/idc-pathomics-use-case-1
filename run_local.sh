@@ -5,7 +5,7 @@ source run_local_environment_vars.sh
 
 # check directories for mounting are set and convert to absolute path
 ( [ -d "$IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR" ] && [ -d "$IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR" ] ) || \
-    { echo "Invalid directory in environment variable IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR or IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR"; exit 1; }
+    { echo "Invalid directory in environment variable IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR or IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR specified in run_local_environment_vars.sh"; exit 1; }
 IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR=$(readlink -m ${IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR})
 IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR=$(readlink -m ${IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR})
 
