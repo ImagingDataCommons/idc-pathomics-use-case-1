@@ -35,7 +35,6 @@ class BaseModel:
             validation_generator = None
             validation_steps = None
 
-        checkpoint_path = '/output/checkpoint'
         callback = ModelCheckpoint(
             filepath=chec'/output/checkpoint_{epoch:03d}', 
             save_weights_only=False, 
