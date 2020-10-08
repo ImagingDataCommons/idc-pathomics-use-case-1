@@ -37,7 +37,7 @@ class BaseModel:
 
         checkpoint_path = '/output/checkpoint'
         callback = ModelCheckpoint(
-            filepath=checkpoint_path, 
+            filepath=chec'/output/checkpoint_{epoch:03d}', 
             save_weights_only=False, 
             monitor='val_loss', 
             mode='min',
