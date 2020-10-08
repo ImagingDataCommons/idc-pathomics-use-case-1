@@ -42,6 +42,7 @@ class BaseModel:
             mode='min',
             save_best_only=True
         )
+        print(callback)
 
         history = self.model.fit(
             training_generator,
