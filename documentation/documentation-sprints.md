@@ -58,3 +58,8 @@ ToDo:
 
 * Genetic mutations 
     * TODO
+
+### other notes: 
+Radiomics use case: 
+- https://github.com/ImagingDataCommons/IDC-Examples/tree/master/notebooks/nsclc-radiomics
+- https://colab.research.google.com/github/ImagingDataCommons/IDC-Examples/blob/master/notebooks/nsclc-radiomics/nsclc_radiomics_demo.ipynb#scrollTo=5xPYUyki_2Iz
