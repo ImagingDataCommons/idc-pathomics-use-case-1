@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 
+def predict():
+    # make and store prediction for every tile
+    pass
+
 def per_slide_evaluation(model, data_set):
     slide_results = {}
 
