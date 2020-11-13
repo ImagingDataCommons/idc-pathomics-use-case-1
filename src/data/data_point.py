@@ -19,7 +19,7 @@ class DataPoint:
 
     def get_slide_id(self):
         return self.patch_path.split(os.sep)[-3][:-6]
-
+    
     def get_position(self):
         filename = os.path.split(self.patch_path)[1]
         coord_string = os.path.splitext(filename)[0]

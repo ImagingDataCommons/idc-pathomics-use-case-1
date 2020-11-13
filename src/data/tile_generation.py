@@ -76,7 +76,7 @@ def generate_tiles(slidepath, output_folder):
         if not os.path.exists(tiledir):
             os.makedirs(tiledir)
         
-        cols, rows = dz.level_tiles[level] # get number of tiles in this label as (nr_tiles_xAxis, nr_tiles_yAxis)
+        cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
         for row in range(rows):
             for col in range(cols): 
                 tilename = os.path.join(tiledir, '%d_%d.%s' %(col, row, 'jpeg'))

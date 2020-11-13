@@ -18,7 +18,6 @@ def per_slide_evaluation(model, data_set):
             }
             
         prediction = model.make_prediction(data_point) 
-        #prediction = [0.3, 0.5, 0.2]
         slide_results[slide_id]['num_patches'] += 1
         slide_results[slide_id]['predictions'].append(prediction)
 
