@@ -58,7 +58,7 @@ class BaseModel:
     def make_prediction(self, data_point):
         # add batch dimension
         patch = data_point.get_patch()[np.newaxis, ...]
-        prediction = self.model.predict(patch)
+        prediction = self.model(patch)
         # remove batch dimension
         return prediction[0, ...]
 
