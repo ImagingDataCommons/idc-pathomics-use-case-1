@@ -9,6 +9,7 @@ from data.data_point import DataPoint
 
 
 class Dataset:
+    
     def __init__(self, csv_file, num_classes):
         self.data_points = []
         base_path = os.path.abspath(os.path.split(csv_file)[0])
