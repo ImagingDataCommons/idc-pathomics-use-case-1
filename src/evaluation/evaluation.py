@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
+import copy
 import matplotlib.pyplot as plt
+import seaborn as sns
 from collections import defaultdict
 from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import label_binarize
 from scipy import interp
+
 
 class Predictions():
     
@@ -15,7 +18,7 @@ class Predictions():
         
         else: 
             predictions_dict = {}
-            for i, data_point in enumerate(dataset.data_points[:5]):
+            for i, data_point in enumerate(dataset.data_points):
                 slide_id = data_point.get_slide_id()
                 if slide_id not in predictions_dict:
                     predictions_dict[i] = {
@@ -29,25 +32,28 @@ class Predictions():
             self.roc_data = None
     
     def save(self, path):
-        df.to_json(path)
+        self.predictions.to_json(path)
     
     
-    def generate_heatmap_for_slide(self, slide_id, colormaps):
+    def generate_heatmap_for_slide(self, slide_id, colormap_strings):
         # extract predictions and tile coordinates for the given slide
         pred = self.predictions.loc[self.predictions['slide_id'] == slide_id]['prediction'].tolist()
         coord = self.predictions.loc[self.predictions['slide_id'] == slide_id]['tile_position'].tolist()
         max_cols, max_rows = max([c[0] for c in coord]) + 1, max([c[1] for c in coord]) + 1
         
-        # configure the colormaps 
-        for cmap in colormaps:
+        # prepare the colormaps 
+        colormaps = []
+        for cstring in colormap_strings:
+            cmap = copy.copy(plt.cm.get_cmap(cstring))
             cmap.set_over(alpha=0)
             cmap.set_under(alpha=0)
+            colormaps.append(cmap)
         
         # create heatmap
         slide_heatmap = -1 * np.ones((max_rows, max_cols, 4))
         for c, p in zip(coord, pred):
             p = p.tolist()
-            colormap_to_use = colormaps[p.index(max(p))]
+            colormap_to_use = colormaps[p.index(max(p))] 
             slide_heatmap[c[1], c[0], :] = colormap_to_use(max(p))
         
         return slide_heatmap
@@ -55,9 +61,9 @@ class Predictions():
     
     def perform_roc_analysis(self):
         #check whether data are already prepared
-        if not self.roc_data:
+        if self.roc_data is None:
             self._prepare_data_for_roc_analysis()
-
+            
         # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC, only for averaging method 'average_probability'
         if self._get_num_classes() > 2: 
             fpr, tpr, roc_auc = self._generate_multiclass_roc_curves()
@@ -69,9 +75,10 @@ class Predictions():
             tpr = {}
             roc_auc = {}
             reference = self.roc_data['reference_value'].tolist()
-            fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = self._generate_roc_curve(reference, prediction=result_df['average_probability'].tolist())
-            fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = self._generate_roc_curve(reference, prediction=result_df['percentage_positive'].tolist())
-            self._plot_roc_curves(fig, fpr, tpr, roc_auc)
+            fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = self._generate_roc_curve(reference, prediction=self.roc_data['average_probability'].tolist())
+            fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] =  self._generate_roc_curve(reference, prediction=self.roc_data['percentage_positive'].tolist())
+        
+        self._plot_roc_curves(fpr, tpr, roc_auc)
     
     
     def _prepare_data_for_roc_analysis(self):
@@ -92,11 +99,11 @@ class Predictions():
             results_per_slide[slide_id]['reference_value'] = reference_value
             results_per_slide[slide_id]['average_probability'] = average_probability
             results_per_slide[slide_id]['percentage_positive'] = percentage_positive
-
+        
         # turn results into pandas data frame
-        result_df = pd.DataFrame(results_per_slide)
+        result_df = pd.DataFrame(results_per_slide).T
+        result_df.reset_index(inplace=True)
         result_df.rename({'index':'slide_id'}, axis='columns', inplace=True)
-        result_df.reset_index(drop=True, inplace=True)
 
         self.roc_data = result_df 
 
@@ -145,7 +152,7 @@ class Predictions():
         return all_fpr, mean_tpr, roc_auc
     
     
-    def plot_roc_curves(self, axes, fpr, tpr, roc_auc):
+    def _plot_roc_curves(self, fpr, tpr, roc_auc):
         # Plot bisector
         plt.plot(
             [0, 1],
@@ -156,7 +163,7 @@ class Predictions():
         )
 
         # Plot ROC curves
-        colors = ['orange', 'royalblue', 'red', 'yellowgreen', 'yellow', 'magenta', 'aqua', 'green', 'burlywood', 'grey']
+        colors = ['orange', 'aqua', 'red', 'yellowgreen', 'yellow', 'magenta', 'royalblue', 'green', 'burlywood', 'grey']
         averaging_method = 'avg_prob'
         for i, key in enumerate(fpr):
             if key == 'percentage_positive': 
