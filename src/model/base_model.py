@@ -51,7 +51,8 @@ class BaseModel:
             steps_per_epoch=len(training_dataset)//batch_size,
             validation_data=validation_generator,
             validation_steps=validation_steps, 
-            callbacks=[callback]
+            callbacks=[callback], 
+            verbose=2
         )
         return history
 
