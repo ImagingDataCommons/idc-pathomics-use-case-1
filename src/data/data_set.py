@@ -40,9 +40,11 @@ class Dataset:
                 for batch_index, data_index in enumerate(batch_indices):
                     data_point = self.data_points[data_index]
                     batch_x[batch_index] = data_point.get_patch()
-                    batch_y[batch_index] = data_point.get_reference_value()
-                    # TODO: if nr_classes > 2, we need one-hot-encoding for the reference 
-                    # to_categorical(self.reference_value, num_classes=self.num_classes)
+                    if self.num_classes == 2: 
+                        batch_y[batch_index] = data_point.get_reference_value()
+                    else: 
+                        # if nr_classes > 2, we need one-hot-encoding for the reference 
+                        batch_y[batch_index] = to_categorical(data_point.get_reference_value(), num_classes=self.num_classes) 
                 
                 yield batch_x, batch_y, [None]
             
