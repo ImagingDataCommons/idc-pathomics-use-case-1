@@ -35,6 +35,3 @@ class InceptionModel(BaseModel):
         output = Dense(num_classes, activation=classifier_activation, name='predictions')(output)
         return Model(model.input, output)
 
-if __name__=='__main__': 
-    m=InceptionModel(num_classes=2)
-    print(repr(m))
