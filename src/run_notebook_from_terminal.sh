@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NOTEBOOK=$1
-OUTPUT_DIR=$2
+NOTEBOOK_NAME=$1
 
-screen -S experiment -dm bash -c "jupyter nbconvert --execute --to=script --output-dir=${OUTPUT_DIR} --ExecutePreprocessor.enabled=True --ExecutePreprocessor.timeout=-1 --ExecutionPreprocessor.allow_errors=True --allow-errors --Application.log_level=10 ${NOTEBOOK}; exec sh"
+jupyter nbconvert --to=script --RegexRemovePreprocessor.patterns="['^\%']" --output-dir="./" "${NOTEBOOK_NAME}.ipynb"
+screen -S experiment -dm bash -c "python ${NOTEBOOK_NAME}.py; exec sh"
