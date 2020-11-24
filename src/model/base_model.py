@@ -18,7 +18,7 @@ class BaseModel:
         return os.linesep.join(lines)
 
 
-    def train(self, training_dataset, batch_size, epochs, output_path, validation_dataset=None):
+    def train(self, training_dataset, batch_size, epochs, output_path, validation_dataset=None, max_queue_size=100):
 
         training_generator = training_dataset.get_generator(
             batch_size=batch_size,
@@ -35,23 +35,22 @@ class BaseModel:
             validation_generator = None
             validation_steps = None
 
-        callback = ModelCheckpoint(
+        save_model = ModelCheckpoint(
             filepath=os.path.join(output_path, 'checkpoint_{epoch:03d}'), 
             save_weights_only=False, 
             monitor='val_loss', 
             mode='min',
             save_best_only=True
         )
-        print(callback)
 
         history = self.model.fit(
             training_generator,
             epochs=epochs,
-            max_queue_size=100,
+            max_queue_size=max_queue_size,
             steps_per_epoch=len(training_dataset)//batch_size,
             validation_data=validation_generator,
             validation_steps=validation_steps, 
-            callbacks=[callback]
+            callbacks=[save_model]
         )
         return history
 

@@ -1,6 +1,5 @@
 # Import libraries
 import os 
-from argparse import ArgumentParser
 from glob import glob
 import json
 from collections import defaultdict

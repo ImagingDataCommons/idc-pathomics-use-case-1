@@ -1,15 +1,11 @@
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, Input, MaxPool2D
-from tensorflow.keras.models import load_model
 
 from model.base_model import BaseModel
 
 
 class DummyModel(BaseModel):
-    def _create_model(self, shape, load_trained_model_from=None):
-        if load_trained_model_from: 
-            model = load_model(load_trained_model_from, compile=True)
-            return model
+    def _create_model(self, shape):
 
         model = Sequential()
         model.add(Input(shape=shape))
