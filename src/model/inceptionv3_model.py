@@ -5,8 +5,9 @@ from tensorflow.keras.models import load_model
 
 from model.base_model import BaseModel
 
-class InceptionModel(BaseModel):
 
+class InceptionModel(BaseModel):
+    
     def _create_model(self, num_classes=2, load_trained_model_from=None):
         # Load already trained model if the path is given
         if load_trained_model_from: 

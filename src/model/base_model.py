@@ -62,10 +62,6 @@ class BaseModel:
         # remove batch dimension
         return prediction[0, ...]
     
-    def predict(self):
-    # make and store prediction for every tile
-        pass
-
     def save(self, file_path):
         self.model.save(
             file_path,

@@ -1,7 +1,3 @@
-""" 
-TODO Documentation + Licence 
-""" 
-
 # Import libraries
 import os
 from glob import glob 
@@ -102,19 +98,4 @@ def get_bkg(tile):
     grey = tile.convert(mode='L') 
     bw = grey.point(lambda x: 0 if x < 220 else 1, mode='F') 
     avg_bkg = np.average(np.array(np.asarray(bw)))
-    return avg_bkg
-
-
-if __name__ == '__main__':
-    description = 'Usage: %prog [options] <path-to-slides>'
-    parser = ArgumentParser(description=description)
-
-    parser.add_argument('slidespath', 
-                        help='Path to the input slides')
-    parser.add_argument('output_folder', 
-                        help='Full path to output folder')                   
-
-    args = parser.parse_args()
-    run_tile_generation(args.slidespath, args.output_folder)
-
-        
+    return avg_bkg   

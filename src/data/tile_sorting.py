@@ -6,8 +6,10 @@ import json
 from collections import defaultdict
 import pandas as pd
 
+
 SORTING_OPTIONS = {1: {'normal':0, 'luad':1, 'lusc':1}, 2: {'luad':0, 'lusc':1}, 3: {'normal':0, 'luad':1, 'lusc':2}}
 SORTING_SUFFIX = {1: 'norm_cancer', 2: 'luad_lusc', 3: 'norm_luad_lusc'}
+
 
 def run_tile_sorting(source_folder, json_file, output_folder, sorting_option):
     """ 
@@ -81,12 +83,14 @@ def create_patient_meta(slide_folders, json_data):
     
     return convert_to_sorted_dataframe(patient_meta)
 
+
 def get_info_about_slide(folder, json_data):
     slide_name = os.path.basename(folder).replace('_files', '')
     metadata = json_data[slide_name] 
     nr_tiles = len([x for x in os.listdir(os.path.join(folder, '20.0')) if x.endswith('.jpeg')])
     patientID = slide_name[:12]
     return metadata, nr_tiles, patientID
+
 
 def extract_class(metadata):
     if is_cancer(metadata):
@@ -95,6 +99,7 @@ def extract_class(metadata):
     else:
         return 'normal'
 
+    
 def is_cancer(metadata):
     sample_type = metadata['cases'][0]['samples'][0]['sample_type']
     if 'normal' in sample_type.lower():
@@ -114,6 +119,7 @@ def assign_patients_to_category(patient_meta, classes):
         patient_meta_c = patient_meta[patient_meta['class'] == c] 
         assign_patients(patient_meta_c, patient_to_category)
     return patient_to_category
+
 
 def assign_patients(patient_meta, patient_to_category):
     nr_all_tiles = patient_meta['nr_tiles'].sum()
@@ -169,23 +175,6 @@ def write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to
             output_csv[category].write('\n')
 
 
-if __name__ == '__main__':
-
-    parser = ArgumentParser()
-
-    parser.add_argument("source_folder", 
-                        help="Path to the tiled images")
-    parser.add_argument("json_file", 
-                        help="Path to metadata file in json format")
-    parser.add_argument("output_folder", 
-                        help="Path to output folder")
-    parser.add_argument("sorting_option", 
-                        help="Specify the sorting option", type=int, choices=[1,2,3])
-
-    args = parser.parse_args()
-
-    run_tile_sorting(args.source_folder, args.json_file, args.output_folder, args.sorting_option)
-    
     
 
     

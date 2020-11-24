@@ -43,7 +43,7 @@ class Dataset:
                     if self.num_classes == 2: 
                         batch_y[batch_index] = data_point.get_reference_value()
                     else: 
-                        # if nr_classes > 2, we need one-hot-encoding for the reference 
+                        # if nr_classes > 2, generate one-hot-encoding for the reference 
                         batch_y[batch_index] = to_categorical(data_point.get_reference_value(), num_classes=self.num_classes) 
                 
                 yield batch_x, batch_y, [None]
