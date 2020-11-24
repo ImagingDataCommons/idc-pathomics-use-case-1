@@ -2,7 +2,6 @@ import csv
 import os
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 from tensorflow.keras.utils import to_categorical
 
 from data.data_point import DataPoint
