@@ -3,7 +3,7 @@ from glob import glob
 import json
 from collections import defaultdict
 import pandas as pd
-from typing import Dict
+from typing import List, Tuple, Dict, Any
 
 
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lusc':1}, 'luad_lusc': {'luad':0, 'lusc':1}, 'norm_luad_lusc': {'normal':0, 'luad':1, 'lusc':2}}
@@ -52,7 +52,7 @@ def _get_classes(sorting_option: str) -> Dict[str, int]:
         break
 
 
-def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dict): 
+def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dict[Any, Any]) -> pd.DataFrame: 
     # load or generate internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
     if os.path.isfile(patient_meta_path): 
         patient_meta = pd.read_csv(patient_meta_path)
@@ -62,7 +62,7 @@ def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dic
     return patient_meta
 
 
-def _generate_patient_meta(slide_folders: str, json_data: Dict):
+def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any]) -> pd.DataFrame:
     patient_meta = defaultdict(lambda: [0, None]) # store nr_tiles and class per patient
 
     for folder in slide_folders:
@@ -77,7 +77,7 @@ def _generate_patient_meta(slide_folders: str, json_data: Dict):
     return _convert_to_sorted_dataframe(patient_meta)
 
 
-def _get_info_about_slide(folder: str, json_data: Dict):
+def _get_info_about_slide(folder: str, json_data: Dict[Any, Any]) -> Tuple[Dict[Any,Any], int, str]:
     slide_name = os.path.basename(folder).replace('_files', '')
     metadata = json_data[slide_name] 
     nr_tiles = len([x for x in os.listdir(os.path.join(folder, '20.0')) if x.endswith('.jpeg')])
@@ -85,7 +85,7 @@ def _get_info_about_slide(folder: str, json_data: Dict):
     return metadata, nr_tiles, patientID
 
 
-def _extract_class(metadata: Dict) -> str:
+def _extract_class(metadata: Dict[Any, Any]) -> str:
     if _is_cancer(metadata):
         subtype = metadata['cases'][0]['project']['project_id'][5:]
         return subtype.lower()
@@ -93,19 +93,19 @@ def _extract_class(metadata: Dict) -> str:
         return 'normal'
 
     
-def _is_cancer(metadata: Dict) -> bool:
+def _is_cancer(metadata: Dict[Any, Any]) -> bool:
     sample_type = metadata['cases'][0]['samples'][0]['sample_type']
     if 'normal' in sample_type.lower():
         return False
     return True
 
-def _convert_to_sorted_dataframe(patient_meta: Dict):
+def _convert_to_sorted_dataframe(patient_meta: Dict[str, List[int,str]]) -> pd.DataFrame:
     patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles', 'class']).reset_index()
     patient_meta.rename({'index':'patientID'}, axis='columns', inplace=True)
     return patient_meta
 
 
-def _assign_patients_to_category(patient_meta, classes):
+def _assign_patients_to_category(patient_meta: pd.DataFrame, classes: Dict[str, int]) -> Dict[str, str]:
     # Assign patients to a category (training, validation, test) separately per class 
     patient_to_category = dict() 
     for c in classes:
@@ -114,7 +114,7 @@ def _assign_patients_to_category(patient_meta, classes):
     return patient_to_category
 
 
-def _assign_patients(patient_meta, patient_to_category):
+def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, str]) -> Dict[str, str]:
     nr_all_tiles = patient_meta['nr_tiles'].sum()
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
     nr_tiles_to_valid = int(0.15 * nr_all_tiles)
@@ -136,7 +136,7 @@ def _assign_patients(patient_meta, patient_to_category):
     return patient_to_category
 
 
-def _write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes, sorting_option):
+def _write_csv_files(slide_folders: str, output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], classes: Dict[str, int], sorting_option: str) -> None:
     path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '.csv')
     path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '.csv')
     path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '.csv')
@@ -152,7 +152,7 @@ def _write_csv_files(slide_folders, output_folder, patient_meta, patient_to_cate
             _write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to_category, classes)
             
 
-def _write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to_category, classes):
+def _write_info(slide_folder: str, output_csv: Dict[str, IO], output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], classes: Dict[str, int]) -> None:
     patient = slide_folder.split('/')[-1][:12]
     if patient in patient_to_category: 
         category = patient_to_category[patient]

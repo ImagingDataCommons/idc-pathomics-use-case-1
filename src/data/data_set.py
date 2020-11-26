@@ -3,7 +3,7 @@ import os
 import random
 import numpy as np
 from tensorflow.keras.utils import to_categorical
-from typing import Tuple
+from typing import Tuple, Generator
 
 from data.data_point import DataPoint
 
@@ -26,7 +26,7 @@ class Dataset:
     def __len__(self) -> int:
         return len(self.data_points)
 
-    def get_generator(self, batch_size: int = 1, infinite: bool = False, shuffle: bool = False): 
+    def get_generator(self, batch_size: int = 1, infinite: bool = False, shuffle: bool = False) -> Generator[np.ndarray, np.ndarray, list]: 
         indices = list(range(len(self.data_points)))
         while True:
             if shuffle:
