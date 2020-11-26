@@ -4,6 +4,8 @@ import numpy as np
 import openslide 
 from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
+from PIL.Image import Image
+from typing import Tuple
 
 
 def generate_tiles(slidespath: str, output_folder: str) -> None:
@@ -69,7 +71,7 @@ def _get_required_level(slide: OpenSlide, dz: DeepZoomGenerator) -> int:
     return level 
 
 
-def _get_available_magnifications(slide: OpenSlide) -> tuple:
+def _get_available_magnifications(slide: OpenSlide) -> Tuple[float]:
 
     factors = slide.level_downsamples
     try: 

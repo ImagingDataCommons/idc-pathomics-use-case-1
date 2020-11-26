@@ -4,9 +4,6 @@ class Predictions():
     
     def __init__(self, model=None, dataset=None, load_from=None):
         
-        if load_from: 
-            self.predictions = pd.read_json(load_from)
-        
         else: 
             predictions_dict = {}
             for i, data_point in enumerate(dataset.data_points):
@@ -21,6 +18,10 @@ class Predictions():
 
             self.predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
     
+    @classmethod
+    def load(self, file_path): 
+        self.predictions = pd.read_json(file_path)
+
     def save(self, path):
         self.predictions.to_json(path) # remember this can be a bottleneck at some point
 

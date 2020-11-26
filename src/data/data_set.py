@@ -3,13 +3,14 @@ import os
 import random
 import numpy as np
 from tensorflow.keras.utils import to_categorical
+from typing import Tuple
 
 from data.data_point import DataPoint
 
 
 class Dataset:
     
-    def __init__(self, csv_file, num_classes):
+    def __init__(self, csv_file: str, num_classes: int) -> None:
         self.data_points = []
         base_path = os.path.abspath(os.path.split(csv_file)[0])
         with open(csv_file, mode='r') as f:
@@ -22,10 +23,10 @@ class Dataset:
         self.patch_width, self.patch_height, self.num_channels = self.data_points[0].get_patch().shape
         self.num_classes = num_classes
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data_points)
 
-    def get_generator(self, batch_size=1, infinite=False, shuffle=False):
+    def get_generator(self, batch_size: int = 1, infinite: bool = False, shuffle: bool = False): 
         indices = list(range(len(self.data_points)))
         while True:
             if shuffle:

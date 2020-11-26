@@ -3,11 +3,15 @@ import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint
-
+from tensorflow.keras.models import load_model
 
 class BaseModel:
     def __init__(self, *args, **kwargs):
         self.model = self._create_model(*args, **kwargs)
+    
+    @classmethod
+    def load(self, file_path):
+        self.model = load_model(load_trained_model_from, compile=False)
 
     def _create_model(self, *args, **kwargs):
         raise NotImplementedError
@@ -16,7 +20,6 @@ class BaseModel:
         lines = []
         self.model.summary(print_fn=lambda line: lines.append(line))
         return os.linesep.join(lines)
-
 
     def train(self, training_dataset, batch_size, epochs, output_path, validation_dataset=None, max_queue_size=100):
 

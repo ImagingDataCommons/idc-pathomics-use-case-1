@@ -1,18 +1,13 @@
 import tensorflow as tf 
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
 from tensorflow.keras import Model
-from tensorflow.keras.models import load_model
 
 from model.base_model import BaseModel
 
 
 class InceptionModel(BaseModel):
     
-    def _create_model(self, num_classes=2, input_shape=(512, 512, 3), load_trained_model_from=None):
-        # Load already trained model if the path is given
-        if load_trained_model_from: 
-            model = load_model(load_trained_model_from, compile=False)
-            return model 
+    def _create_model(self, num_classes=2, input_shape=(512, 512, 3)):
 
         # Use Inception v3 model by Keras and add top layers manually 
         configs = self._define_configurations(num_classes)
