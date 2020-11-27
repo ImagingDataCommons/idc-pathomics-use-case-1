@@ -1,13 +1,14 @@
 import tensorflow as tf 
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
 from tensorflow.keras import Model
+from typing import Tuple, Dict, Union
 
 from model.base_model import BaseModel
 
 
 class InceptionModel(BaseModel):
     
-    def _create_model(self, num_classes=2, input_shape=(512, 512, 3)):
+    def _create_model(self, num_classes: int = 2, input_shape: Tuple[int, int, int] = (512, 512, 3)) -> InceptionModel:
 
         # Use Inception v3 model by Keras and add top layers manually 
         configs = self._define_configurations(num_classes)
@@ -17,7 +18,7 @@ class InceptionModel(BaseModel):
         model.compile(optimizer=opt, loss=configs['loss'])
         return model
 
-    def _define_configurations(self, num_classes):
+    def _define_configurations(self, num_classes: int) -> Dict[str, Union[str, int]]:
         # For a binary classification problem: we use single output value from sigmoid layer instead of two output values from softmax layer
         configs = dict()
         if num_classes == 2: 
@@ -32,7 +33,7 @@ class InceptionModel(BaseModel):
             raise Exception('Number of classes has to be in [2,10].')
         return configs
 
-    def _add_top_layers(self, model, classifier_activation, num_classes):
+    def _add_top_layers(self, model: tf.keras.Model, classifier_activation: str, num_classes: int) -> tf.keras.Model:
         output = model.output
         output = GlobalAveragePooling2D()(output)
         output = Dense(num_classes, activation=classifier_activation, name='predictions')(output)

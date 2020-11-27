@@ -1,11 +1,12 @@
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
+from typing import List
 
 from evaluation.predictions import Predictions 
 
 
-def generate_heatmap_for_slide(predictions, slide_id, colormap_strings):
+def generate_heatmap_for_slide(predictions: Predictions, slide_id: str, colormap_strings: List[str]) -> np.ndarray:
     pred = predictions.get_predictions_for_slide(slide_id)
     coord = predictions.get_tile_positions_for_slide(slide_id)
     max_cols, max_rows = max([c[0] for c in coord]) + 1, max([c[1] for c in coord]) + 1
@@ -21,7 +22,7 @@ def generate_heatmap_for_slide(predictions, slide_id, colormap_strings):
     return slide_heatmap
     
 
-def _get_colormaps(colormap_strings):
+def _get_colormaps(colormap_strings: List[str]) -> List[plt.colors.Colormap]:
     colormaps = []
     for cstring in colormap_strings:
         cmap = copy.copy(plt.cm.get_cmap(cstring))

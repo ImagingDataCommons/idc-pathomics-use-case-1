@@ -5,23 +5,24 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.models import load_model
 
+
 class BaseModel:
     def __init__(self, *args, **kwargs):
         self.model = self._create_model(*args, **kwargs)
     
     @classmethod
-    def load(self, file_path):
+    def load(self, file_path: str) -> None:
         self.model = load_model(load_trained_model_from, compile=False)
 
     def _create_model(self, *args, **kwargs):
         raise NotImplementedError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         lines = []
         self.model.summary(print_fn=lambda line: lines.append(line))
         return os.linesep.join(lines)
 
-    def train(self, training_dataset, batch_size, epochs, output_path, validation_dataset=None, max_queue_size=100):
+    def train(self, training_dataset: Dataset, batch_size: int, epochs: int, output_path: str, validation_dataset: Dataset = None, max_queue_size: int = 100) -> tf.keras.callbacks.History:
 
         training_generator = training_dataset.get_generator(
             batch_size=batch_size,
@@ -57,14 +58,14 @@ class BaseModel:
         )
         return history
 
-    def make_prediction(self, data_point):
+    def make_prediction(self, data_point: DataPoint) -> np.ndarray:
         # add batch dimension
         patch = data_point.get_patch()[np.newaxis, ...]
         prediction = self.model(patch)
         # remove batch dimension
         return prediction[0, ...]
     
-    def save(self, file_path):
+    def save(self, file_path: str) -> None:
         self.model.save(
             file_path,
             overwrite=True,

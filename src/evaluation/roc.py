@@ -6,11 +6,12 @@ from collections import defaultdict
 from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import label_binarize
 from scipy import interp
+from typing import Tuple, List, Dict
 
 from evaluation.predictions import Predictions 
 
 
-def perform_roc_analysis(predictions, num_classes):
+def perform_roc_analysis(predictions: Predictions, num_classes: int) -> None:
     # Check whether data are already prepared TODO and verify that num_classes is allowed
     roc_data = _prepare_data_for_roc_analysis(predictions, num_classes)
     
@@ -31,7 +32,7 @@ def perform_roc_analysis(predictions, num_classes):
     plot_roc_curves(fpr, tpr, roc_auc)
 
 
-def _prepare_data_for_roc_analysis(predictions, num_classes):
+def _prepare_data_for_roc_analysis(predictions: Predictions, num_classes: int) -> pd.DataFrame:
     results_per_slide = defaultdict(dict)
     
     # average predictions of tiles to obtain one prediction per slide 
@@ -58,7 +59,7 @@ def _prepare_data_for_roc_analysis(predictions, num_classes):
     return result_df
 
 
-def _generate_multiclass_roc_curves(roc_data): 
+def _generate_multiclass_roc_curves(roc_data: pd.DataFrame) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]: 
     # Binarize the reference values 
     reference = label_binarize(roc_data['reference_value'].tolist(), classes=[i for i in range(3)])
 
@@ -79,7 +80,7 @@ def _generate_multiclass_roc_curves(roc_data):
     return fpr, tpr, roc_auc 
 
 
-def _generate_roc_curve(reference, prediction):
+def _generate_roc_curve(reference: List[int], prediction: List[int]) -> Tuple[np.ndarray, np.ndarray, float]:
     fpr, tpr, _ = roc_curve(
         y_true = reference,
         y_score = prediction
@@ -88,7 +89,7 @@ def _generate_roc_curve(reference, prediction):
     return fpr, tpr, roc_auc
 
 
-def _generate_macro_average_roc(tpr, fpr):
+def _generate_macro_average_roc(tpr: np.ndarray, fpr: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
     # Aggregate all false positive rates
     all_fpr = np.unique(np.concatenate([fpr[i] for i in range(3)]))
 
@@ -102,7 +103,7 @@ def _generate_macro_average_roc(tpr, fpr):
     return all_fpr, mean_tpr, roc_auc
 
 
-def _plot_roc_curves(fpr, tpr, roc_auc):
+def _plot_roc_curves(fpr: dict, tpr: dict, roc_auc: dict):
     # Plot bisector
     plt.plot(
         [0, 1],

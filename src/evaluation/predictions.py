@@ -2,7 +2,7 @@ import pandas as pd
 
 class Predictions():
     
-    def __init__(self, model=None, dataset=None, load_from=None):
+    def __init__(self, model: InceptionModel, dataset: Dataset) -> None:
         
         else: 
             predictions_dict = {}
@@ -19,19 +19,19 @@ class Predictions():
             self.predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
     
     @classmethod
-    def load(self, file_path): 
+    def load(self, file_path: str) -> None: 
         self.predictions = pd.read_json(file_path)
 
-    def save(self, path):
+    def save(self, path: str) -> None:
         self.predictions.to_json(path) # remember this can be a bottleneck at some point
 
-    def get_predictions_for_slide(self, slide_id):
+    def get_predictions_for_slide(self, slide_id: str) -> list:
         return self.predictions.loc[self.predictions['slide_id'] == slide_id]['prediction'].tolist()
     
-    def get_tile_positions_for_slide(self, slide_id):
+    def get_tile_positions_for_slide(self, slide_id: str) -> list:
         return self.predictions.loc[self.predictions['slide_id'] == slide_id]['tile_position'].tolist()
 
-    def get_reference_value_for_slide(self, slide_id):
+    def get_reference_value_for_slide(self, slide_id: str) -> int:
         return self.predictions.loc[self.predictions['slide_id'] == slide_id]['reference_value'].tolist()[0]
 
 
