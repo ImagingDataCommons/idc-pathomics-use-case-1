@@ -11,6 +11,7 @@ def copy_folder_structure(input_path, output_path):
 
 def copy_and_resize_tiles(tile_paths_in, output_folder):
     for tile_path_in in tile_paths_in:
+        print(tile_path_in)
         len_out = len(output_folder.split('/'))
         tile_path_out = os.path.join(output_folder, '/'.join(tile_path_in.split('/')[len_out-1:]))
         img = Image.open(tile_path_in)
