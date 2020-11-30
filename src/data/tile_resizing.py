@@ -14,9 +14,10 @@ def copy_and_resize_tiles(tile_paths_in, output_folder):
         print(tile_path_in)
         len_out = len(output_folder.split('/'))
         tile_path_out = os.path.join(output_folder, '/'.join(tile_path_in.split('/')[len_out-1:]))
-        img = Image.open(tile_path_in)
-        resized = img.resize((256,256))
-        resized.save(tile_path_out)
+        if not os.path.exists(tile_path_out):
+            img = Image.open(tile_path_in)
+            resized = img.resize((256,256))
+            resized.save(tile_path_out)
 
 if __name__ == '__main__':
     input_path = '/home/dschacherer/mnt/gaia/imageData/deep_learning/output/imaging-data-commons/idc-pathomics-use-case-1/tiles/'
