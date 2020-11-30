@@ -21,6 +21,7 @@ def copy_and_resize_tiles(tile_paths_in, output_folder):
 if __name__ == '__main__':
     input_path = '/home/dschacherer/mnt/gaia/imageData/deep_learning/output/imaging-data-commons/idc-pathomics-use-case-1/tiles/'
     output_path = '/home/dschacherer/mnt/gaia/imageData/deep_learning/output/imaging-data-commons/idc-pathomics-use-case-1/tiles_256/'
-    copy_folder_structure(input_path, output_path)
+    #copy_folder_structure(input_path, output_path)
     tile_paths_in = glob(input_path + '/*/*/*jpeg', recursive=True)
+    print(len(tile_paths_in), tile_paths_in)
     copy_and_resize_tiles(tile_paths_in, output_path)
