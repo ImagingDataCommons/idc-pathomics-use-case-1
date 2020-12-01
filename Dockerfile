@@ -6,8 +6,6 @@ RUN apt-get update \
      python3-openslide \
   && rm -rf /var/lib/apt/lists/*
 
-VOLUME ["/input_data", "/output_data"]
-
 ADD . /idc-pathomics-use-case-1
 
 WORKDIR /idc-pathomics-use-case-1/src
