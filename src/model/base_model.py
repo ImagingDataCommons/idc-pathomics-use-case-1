@@ -4,6 +4,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.models import load_model
+from data.data_set import Dataset
+from data.data_point import DataPoint
 
 
 class BaseModel:
