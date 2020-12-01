@@ -8,7 +8,7 @@ from model.base_model import BaseModel
 
 class InceptionModel(BaseModel):
     
-    def _create_model(self, num_classes: int = 2, input_shape: Tuple[int, int, int] = (512, 512, 3)) -> InceptionModel:
+    def _create_model(self, num_classes: int = 2, input_shape: Tuple[int, int, int] = (512, 512, 3)) -> tf.keras.Model:
 
         # Use Inception v3 model by Keras and add top layers manually 
         configs = self._define_configurations(num_classes)
