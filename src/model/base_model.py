@@ -14,7 +14,7 @@ class BaseModel:
     
     @classmethod
     def load(self, file_path: str) -> None:
-        self.model = load_model(load_trained_model_from, compile=False)
+        self.model = load_model(file_path, compile=False)
 
     def _create_model(self, *args, **kwargs):
         raise NotImplementedError

@@ -1,5 +1,5 @@
 
-FROM tensorflow/tensorflow:2.1.0-gpu-py3-jupyter
+FROM tensorflow/tensorflow:2.1.1-gpu-jupyter
 
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \

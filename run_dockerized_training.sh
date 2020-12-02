@@ -7,6 +7,7 @@ docker build -t idc-pathomics-use-case-1 .
 docker rm idc-pathomics-use-case-1-training
 
 docker run \
+    -it \
     --name idc-pathomics-use-case-1-training \
     --gpus all \
     -u $(id -u ${USER}):$(id -g ${USER}) \
