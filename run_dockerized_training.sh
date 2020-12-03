@@ -11,9 +11,9 @@ docker run \
     --name idc-pathomics-use-case-1-training \
     --gpus all \
     -u $(id -u ${USER}):$(id -g ${USER}) \
-    -v /home/dschacherer_fme/input:/input_data \
+    -v ${IDC_PATHOMICS_USE_CASE_1_INPUT_DATA_DIR}:/input_data \
     -e "IDC_INPUT_DATA_DIR=/input_data" \
-    -v /home/dschacherer_fme/output:/output_data \
+    -v ${IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR}:/output_data \
     -e "IDC_OUTPUT_DATA_DIR=/output_data" \
     --entrypoint /bin/bash \
     idc-pathomics-use-case-1 \
