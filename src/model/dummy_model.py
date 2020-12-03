@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, Input, MaxPool2D
 from typing import Tuple
@@ -6,7 +7,7 @@ from model.base_model import BaseModel
 
 
 class DummyModel(BaseModel):
-    def _create_model(self, shape: Tuple[int, int, int]) -> DummyModel:
+    def _create_model(self, shape: Tuple[int, int, int]) -> tf.keras.Model:
 
         model = Sequential()
         model.add(Input(shape=shape))
