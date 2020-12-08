@@ -6,6 +6,12 @@ docker build -t idc-pathomics-use-case-1 .
 
 docker rm idc-pathomics-use-case-1-training
 
+COMMIT=$(git rev-parse --short HEAD)
+if ! git diff-index --quiet HEAD --
+then
+    COMMIT="${COMMIT}_modified"
+fi
+
 docker run \
     -it \
     --name idc-pathomics-use-case-1-training \
@@ -15,6 +21,7 @@ docker run \
     -e "IDC_INPUT_DATA_DIR=/input_data" \
     -v ${IDC_PATHOMICS_USE_CASE_1_OUTPUT_DATA_DIR}:/output_data \
     -e "IDC_OUTPUT_DATA_DIR=/output_data" \
+    -e "GIT_COMMIT=${COMMIT}" \
     --entrypoint /bin/bash \
     idc-pathomics-use-case-1 \
     -c "jupyter nbconvert --to=script --output-dir=/tmp --RegexRemovePreprocessor.patterns=\"['^\%']\" training.ipynb ; PYTHONPATH=. python3 /tmp/training.py"
