@@ -13,7 +13,7 @@ class DataPoint:
 
     def get_patch(self) -> Image:
         img = load_img(self.patch_path, color_mode='rgb')
-        return img_to_array(img) / 255.0
+        return (img_to_array(img) / 127.5) - 1.0 # scale to [-1, 1]
 
     def get_reference_value(self) -> int:
         return self.reference_value
