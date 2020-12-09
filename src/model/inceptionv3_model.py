@@ -14,7 +14,7 @@ class InceptionModel(BaseModel):
         configs = self._define_configurations(num_classes)
         model = tf.keras.applications.InceptionV3(include_top=False, weights=None, input_shape=input_shape)
         model = self._add_top_layers(model, configs['classifier_activation'], configs['num_outputs'])
-        opt = tf.keras.optimizers.RMSprop(lr=0.001, rho=0.9, momentum=0.9, epsilon=1.0)
+        opt = tf.keras.optimizers.RMSprop(lr=0.01, rho=0.9, momentum=0.9, epsilon=1.0)
         model.compile(optimizer=opt, loss=configs['loss'])
         return model
 
