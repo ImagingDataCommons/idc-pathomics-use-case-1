@@ -2,7 +2,7 @@ import os
 import random
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 from tensorflow.keras.models import load_model
 from data.data_set import Dataset
 from data.data_point import DataPoint
@@ -41,11 +41,15 @@ class BaseModel:
             validation_generator = None
             validation_steps = None
 
-        save_model = ModelCheckpoint(
+        save_model_callback = ModelCheckpoint(
             filepath=os.path.join(output_path, 'checkpoint_{epoch:03d}'), 
             save_weights_only=False, 
             monitor='val_loss', 
             mode='min',
+        )
+
+        csv_logger_callback = CSVLogger(
+            filename=os.path.join(output_path, 'train.csv')
         )
 
         history = self.model.fit(
@@ -55,7 +59,7 @@ class BaseModel:
             steps_per_epoch=len(training_dataset)//batch_size,
             validation_data=validation_generator,
             validation_steps=validation_steps, 
-            callbacks=[save_model]
+            callbacks=[save_model_callback, csv_logger_callback]
         )
         return history
 
