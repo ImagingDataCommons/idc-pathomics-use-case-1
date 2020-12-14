@@ -46,7 +46,6 @@ class BaseModel:
             save_weights_only=False, 
             monitor='val_loss', 
             mode='min',
-            save_best_only=True
         )
 
         history = self.model.fit(
