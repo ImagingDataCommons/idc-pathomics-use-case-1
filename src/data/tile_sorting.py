@@ -11,7 +11,8 @@ SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lusc':1}, 'luad_lusc':
 
 def run_tile_sorting(source_folder: str, json_file: str, output_folder: str, sorting_option: str) -> None:
     """ 
-    Sort the tiles by one of the following three options. 
+    Sort the tiles by one of the following three options while balancing classes to be distributed equally to training
+    test and validation set. 
     Stores separate csv files for training, test and validation set, each in the format "path, reference_class" 
         > 'normal_cancer': 'normal' vs. 'cancer'
         > 'luad_lusc': 'cancer subtype LUAD' vs. 'cancer subtype LUSC'

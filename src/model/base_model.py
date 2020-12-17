@@ -9,12 +9,18 @@ from data.data_point import DataPoint
 
 
 class BaseModel:
-    def __init__(self, *args, **kwargs):
-        self.model = self._create_model(*args, **kwargs)
+    def __init__(self, model):
+        self.model = model 
     
     @classmethod
-    def load(self, file_path: str) -> None:
-        self.model = load_model(file_path, compile=False)
+    def create(cls, *args, **kwargs) -> tf.keras.Model:
+        model = self._create_model(*args, **kwargs)
+        return cls(model)
+    
+    @classmethod
+    def load(cls, file_path: str) -> tf.keras.Model:
+        model = load_model(file_path, compile=False)
+        return cls(model)
 
     def _create_model(self, *args, **kwargs):
         raise NotImplementedError
