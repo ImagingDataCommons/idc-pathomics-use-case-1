@@ -4,8 +4,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 from tensorflow.keras.models import load_model
+from typing import Dict
+
 from data.data_set import Dataset
 from data.data_point import DataPoint
+
 
 
 class BaseModel:
@@ -30,7 +33,15 @@ class BaseModel:
         self.model.summary(print_fn=lambda line: lines.append(line))
         return os.linesep.join(lines)
 
-    def train(self, training_dataset: Dataset, batch_size: int, epochs: int, output_path: str, validation_dataset: Dataset = None, max_queue_size: int = 100) -> tf.keras.callbacks.History:
+    def train(
+        self, 
+        training_dataset: Dataset, 
+        batch_size: int, 
+        epochs: int, 
+        output_path: str, 
+        validation_dataset: Dataset = None, 
+        class_weights: Dict[int, float] = None,
+        max_queue_size: int = 100) -> tf.keras.callbacks.History:
 
         training_generator = training_dataset.get_generator(
             batch_size=batch_size,
@@ -65,7 +76,8 @@ class BaseModel:
             steps_per_epoch=len(training_dataset)//batch_size,
             validation_data=validation_generator,
             validation_steps=validation_steps, 
-            callbacks=[save_model_callback, csv_logger_callback]
+            callbacks=[save_model_callback, csv_logger_callback], 
+            class_weight=class_weights
         )
         return history
 
