@@ -63,17 +63,18 @@ def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dic
 
 
 def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any]) -> pd.DataFrame:
-    patient_meta = defaultdict(lambda: [0, None]) # store nr_tiles and class per patient
+    patient_meta = defaultdict(lambda: [0, 0, None]) # store nr_tiles_total, nr_tiles_cancer and cancer type per patient (= patient class)
 
-    for folder in slide_folders:
-        metadata, nr_tiles, patientID = _get_info_about_slide(folder, json_data)
+    for slide_folder in slide_folders:
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data)
         if patientID not in patient_meta:
-            patient_class = _extract_class(metadata)
-            patient_meta[patientID][0] += nr_tiles
-            patient_meta[patientID][1] = patient_class
-        else: 
-            patient_meta[patientID][0] += nr_tiles
-    
+            patient_class = _extract_patient_class(metadata) 
+            patient_meta[patientID][2] = patient_class
+
+        patient_meta[patientID][0] += nr_tiles 
+        if _is_cancer_slide(metadata):
+            patient_meta[patientID][1] += nr_tiles
+        
     return _convert_to_sorted_dataframe(patient_meta)
 
 
@@ -85,19 +86,17 @@ def _get_info_about_slide(folder: str, json_data: Dict[Any, Any]) -> Tuple[Dict[
     return metadata, nr_tiles, patientID
 
 
-def _extract_class(metadata: Dict[Any, Any]) -> str:
-    if _is_cancer(metadata):
-        subtype = metadata['cases'][0]['project']['project_id'][5:]
-        return subtype.lower()
-    else:
-        return 'normal'
+def _extract_patient_class(metadata: Dict[Any, Any]) -> str:
+    subtype = metadata['cases'][0]['project']['project_id'][5:]
+    return subtype.lower()
 
-    
-def _is_cancer(metadata: Dict[Any, Any]) -> bool:
+
+def _is_cancer_slide(metadata: Dict[Any, Any]) -> bool:
     sample_type = metadata['cases'][0]['samples'][0]['sample_type']
     if 'normal' in sample_type.lower():
         return False
     return True
+
 
 def _convert_to_sorted_dataframe(patient_meta: Dict[str, list]) -> pd.DataFrame:
     patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles', 'class']).reset_index()

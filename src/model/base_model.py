@@ -12,13 +12,11 @@ from data.data_point import DataPoint
 
 
 class BaseModel:
-    def __init__(self, model):
-        self.model = model 
-    
-    @classmethod
-    def create(cls, *args, **kwargs) -> tf.keras.Model:
-        model = self._create_model(*args, **kwargs)
-        return cls(model)
+    def __init__(self, model=None, *args, **kwargs):
+        if model: 
+            self.model = model 
+        else: 
+            self.model = self._create_model(*args, **kwargs)
     
     @classmethod
     def load(cls, file_path: str) -> tf.keras.Model:

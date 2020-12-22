@@ -6,6 +6,9 @@ RUN apt-get update \
      python3-openslide \
   && rm -rf /var/lib/apt/lists/*
 
+ADD requirements.txt /requirements.txt
+RUN pip3 install -r /requirements.txt
+
 ADD . /idc-pathomics-use-case-1
 
 WORKDIR /idc-pathomics-use-case-1/src
