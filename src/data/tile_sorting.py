@@ -187,7 +187,10 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
     if patient in patient_to_category: 
         category = patient_to_category[patient]
         slide_class = slides_meta[slide_folder]
-        slide_class = str(classes[slide_class]) 
+        try: 
+            slide_class = str(classes[slide_class]) 
+        except: # this skips 'normal' slides in the second sorting option that only considers luad vs. lusc slides
+            return 
         tiles = os.listdir(os.path.join(slide_folder, '20.0'))
         tiles = [os.path.join(slide_folder, '20.0', t) for t in tiles] # get full paths 
         tiles = [os.path.relpath(t, start=output_folder) for t in tiles] # convert to paths relative to output directory
