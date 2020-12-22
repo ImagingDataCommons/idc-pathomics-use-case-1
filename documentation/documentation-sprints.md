@@ -25,7 +25,6 @@ plus curl -O http://download.tensorflow.org/models/image/imagenet/inception-v3-2
 ToDo: 
 * check advantage of using logits in the loss function
 * genetic mutations 
-* data point slide ID = patient ID?! yes but not necessarily. 
 * prediction separately from evaluation? 
 * make path structure for tiles nicer
 
