@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cd "$(dirname "$0")" # move to script directory
+NOTEBOOK=$1
 
 docker build -t idc-pathomics-use-case-1 .
 
@@ -37,7 +38,7 @@ then
         -e "GIT_COMMIT=${COMMIT}" \
         --entrypoint /bin/bash \
         idc-pathomics-use-case-1 \
-        -c "jupyter nbconvert --to=script --output-dir=/tmp --RegexRemovePreprocessor.patterns=\"['^\%']\" preprocessing.ipynb ; PYTHONPATH=. python3 /tmp/preprocessing.py"
+        -c "jupyter nbconvert --to=script --output-dir=/tmp --RegexRemovePreprocessor.patterns=\"['^\%']\" ${NOTEBOOK}.ipynb ; PYTHONPATH=. python3 /tmp/${NOTEBOOK}.py"
 else # run docker interactively
     docker run \
         -it \
