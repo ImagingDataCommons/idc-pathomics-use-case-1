@@ -40,9 +40,11 @@ def run_tile_sorting(source_folder: str, json_file: str, output_folder: str, sor
     classes = _get_classes(sorting_option)
     
     patient_meta_path = os.path.join(output_folder, 'patient_meta.csv')
+    slides_meta_path = os.path.join(output_folder, 'slides_meta.csv')
     patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data)
+    slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data)
     patient_to_category = _assign_patients_to_category(patient_meta, classes) 
-    _write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, classes, sorting_option)
+    _write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, slides_meta, classes, sorting_option)
 
 
 def _get_classes(sorting_option: str) -> Dict[str, int]:
@@ -63,18 +65,42 @@ def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dic
 
 
 def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any]) -> pd.DataFrame:
-    patient_meta = defaultdict(lambda: [0, None]) # store nr_tiles and class per patient
+    patient_meta = defaultdict(lambda: [0, 0, None]) # store nr_tiles_total, nr_tiles_cancer and cancer type per patient
 
-    for folder in slide_folders:
-        metadata, nr_tiles, patientID = _get_info_about_slide(folder, json_data)
+    for slide_folder in slide_folders:
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data)
         if patientID not in patient_meta:
-            patient_class = _extract_class(metadata)
-            patient_meta[patientID][0] += nr_tiles
-            patient_meta[patientID][1] = patient_class
-        else: 
-            patient_meta[patientID][0] += nr_tiles
+            patient_cancer_type = _extract_patient_cancer_type(metadata) 
+            patient_meta[patientID][2] = patient_cancer_type
+
+        patient_meta[patientID][0] += nr_tiles 
+        if _is_cancer_slide(metadata):
+            patient_meta[patientID][1] += nr_tiles
     
-    return _convert_to_sorted_dataframe(patient_meta)
+    return _convert_to_dataframe(patient_meta)
+
+
+def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[Any, Any]) -> Dict[str, str]:
+    if os.path.isfile(slides_meta_path): 
+        with open(slides_meta_path, 'r') as slides_meta_file: 
+            slides_meta = json.loads(slides_meta_file.read())
+    else: 
+        slides_meta = _generate_slides_meta(slide_folders, json_data)
+        with open(slides_meta_path, 'w') as slides_meta_file:
+            json.dump(slides_meta, slides_meta_file)
+    return slides_meta
+
+
+def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any]) -> Dict[str, str]:
+    slides_meta = defaultdict(lambda: None)
+    for slide_folder in slide_folders:
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data)
+        if _is_cancer_slide(metadata):
+            slide_class = _extract_patient_cancer_type(metadata) 
+        else: 
+            slide_class = 'normal'
+        slides_meta[slide_folder] = slide_class
+    return slides_meta
 
 
 def _get_info_about_slide(folder: str, json_data: Dict[Any, Any]) -> Tuple[Dict[Any,Any], int, str]:
@@ -85,42 +111,46 @@ def _get_info_about_slide(folder: str, json_data: Dict[Any, Any]) -> Tuple[Dict[
     return metadata, nr_tiles, patientID
 
 
-def _extract_class(metadata: Dict[Any, Any]) -> str:
-    if _is_cancer(metadata):
-        subtype = metadata['cases'][0]['project']['project_id'][5:]
-        return subtype.lower()
-    else:
-        return 'normal'
+def _extract_patient_cancer_type(metadata: Dict[Any, Any]) -> str:
+    subtype = metadata['cases'][0]['project']['project_id'][5:]
+    return subtype.lower()
 
-    
-def _is_cancer(metadata: Dict[Any, Any]) -> bool:
+
+def _is_cancer_slide(metadata: Dict[Any, Any]) -> bool:
     sample_type = metadata['cases'][0]['samples'][0]['sample_type']
     if 'normal' in sample_type.lower():
         return False
     return True
 
-def _convert_to_sorted_dataframe(patient_meta: Dict[str, list]) -> pd.DataFrame:
-    patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles', 'class']).reset_index()
+
+def _convert_to_dataframe(patient_meta: Dict[str, list]) -> pd.DataFrame: 
+    # TODO sort the dataframe?
+    patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles_total', 'nr_tiles_cancer', 'cancer_subtype']).reset_index()
     patient_meta.rename({'index':'patientID'}, axis='columns', inplace=True)
     return patient_meta
 
 
 def _assign_patients_to_category(patient_meta: pd.DataFrame, classes: Dict[str, int]) -> Dict[str, str]:
-    # Assign patients to a category (training, validation, test) separately per class 
+    # Assign patients to a category (training, validation, test) separately per patient subtype 
     patient_to_category = dict() 
-    for c in classes:
-        patient_meta_c = patient_meta[patient_meta['class'] == c] 
-        _assign_patients(patient_meta_c, patient_to_category)
+    for c_type in ['luad', 'lusc']:  
+        patient_meta_c = patient_meta[patient_meta['cancer_subtype'] == c_type] 
+        _assign_patients(patient_meta_c, patient_to_category, classes)
     return patient_to_category
 
 
-def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, str]) -> Dict[str, str]:
-    nr_all_tiles = patient_meta['nr_tiles'].sum()
+def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], classes: Dict[str, int]) -> Dict[str, str]:
+    if 'normal' not in classes:
+        tiles_to_consider = 'nr_tiles_cancer'
+    else: 
+        tiles_to_consider = 'nr_tiles_total'
+
+    nr_all_tiles = patient_meta[tiles_to_consider].sum() 
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
     nr_tiles_to_valid = int(0.15 * nr_all_tiles)
 
     for i, row in patient_meta.iterrows():
-        patient, nr_tiles_patient = row['patientID'], row['nr_tiles']
+        patient, nr_tiles_patient = row['patientID'], row[tiles_to_consider]
 
         # Assign patient to the test set -> if test is full,  assign to validation -> if validation is full, assign to training 
         if nr_tiles_to_test > 0: 
@@ -136,7 +166,7 @@ def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, 
     return patient_to_category
 
 
-def _write_csv_files(slide_folders: str, output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], classes: Dict[str, int], sorting_option: str) -> None:
+def _write_csv_files(slide_folders: str, output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: str) -> None:
     path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '.csv')
     path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '.csv')
     path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '.csv')
@@ -149,19 +179,18 @@ def _write_csv_files(slide_folders: str, output_folder: str, patient_meta: pd.Da
 
         # Fill csv files
         for slide_folder in slide_folders:
-            _write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to_category, classes)
+            _write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to_category, slides_meta, classes)
             
 
-def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], classes: Dict[str, int]) -> None:
+def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int]) -> None:
     patient = slide_folder.split('/')[-1][:12]
     if patient in patient_to_category: 
         category = patient_to_category[patient]
-        patient_class = patient_meta[patient_meta['patientID'] == patient]['class'].to_string(index=False).strip()
-        patient_class = str(classes[patient_class]) 
-        
+        slide_class = slides_meta[slide_folder]
+        slide_class = str(classes[slide_class]) 
         tiles = os.listdir(os.path.join(slide_folder, '20.0'))
         tiles = [os.path.join(slide_folder, '20.0', t) for t in tiles] # get full paths 
         tiles = [os.path.relpath(t, start=output_folder) for t in tiles] # convert to paths relative to output directory
         for tile in tiles:    
-            output_csv[category].write(','.join([tile, patient_class]))
-            output_csv[category].write('\n')      
+            output_csv[category].write(','.join([tile, slide_class]))
+            output_csv[category].write('\n')
