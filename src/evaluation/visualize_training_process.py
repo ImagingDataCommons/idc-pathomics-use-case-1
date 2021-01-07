@@ -9,4 +9,7 @@ if __name__ == '__main__':
     train_data = pd.read_csv(train_file)
     plt.plot(train_data['loss'])
     plt.plot(train_data['val_loss'])
-    plt.savefig('/home/dschacherer/Schreibtisch/test.png')
+    plt.savefig(os.path.join(os.path.basename(train_file), 'training_loss.png'))
+    plt.plot(train_data['acc'])
+    plt.plot(train_data['val_acc'])
+    plt.savefig(os.path.join(os.path.basename(train_file), 'training_acc.png'))
