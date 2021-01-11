@@ -3,20 +3,19 @@ import pandas as pd
 class Predictions():
     
     def __init__(self, model: InceptionModel, dataset: Dataset) -> None:
-        
-        else: 
-            predictions_dict = {}
-            for i, data_point in enumerate(dataset.data_points):
-                slide_id = data_point.get_slide_id()
-                if slide_id not in predictions_dict:
-                    predictions_dict[i] = {
-                        'slide_id': slide_id,
-                        'tile_position': data_point.get_position(),
-                        'reference_value': data_point.get_reference_value(),
-                        'prediction': model.make_prediction(data_point).numpy()
-                    }
 
-            self.predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
+        predictions_dict = {}
+        for i, data_point in enumerate(dataset.data_points):
+            slide_id = data_point.get_slide_id()
+            if slide_id not in predictions_dict:
+                predictions_dict[i] = {
+                    'slide_id': slide_id,
+                    'tile_position': data_point.get_position(),
+                    'reference_value': data_point.get_reference_value(),
+                    'prediction': model.make_prediction(data_point).numpy()
+                }
+
+        self.predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
     
     @classmethod
     def load(self, file_path: str) -> None: 
