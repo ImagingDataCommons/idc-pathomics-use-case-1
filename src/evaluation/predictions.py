@@ -1,8 +1,12 @@
 import pandas as pd
+import tensorflow as tf
+
+from data.data_set import Dataset
+
 
 class Predictions():
     
-    def __init__(self, model: InceptionModel, dataset: Dataset) -> None:
+    def __init__(self, model: tf.keras.Model, dataset: Dataset) -> None:
 
         predictions_dict = {}
         for i, data_point in enumerate(dataset.data_points):
