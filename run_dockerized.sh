@@ -5,7 +5,7 @@ NOTEBOOK=$1
 
 docker build -t idc-pathomics-use-case-1 .
 
-docker rm idc-pathomics-use-case-1-training
+docker rm "idc-pathomics-use-case-1-${NOTEBOOK}"
 
 COMMIT=$(git rev-parse --short HEAD)
 if ! git diff-index --quiet HEAD --
@@ -28,7 +28,7 @@ if [ "$INTERACTIVE" = false ] # run docker non-interactively
 then
     docker run \
         -it \
-        --name idc-pathomics-use-case-1-training \
+        --name "idc-pathomics-use-case-1-${NOTEBOOK}" \
         --gpus all \
         -u $(id -u ${USER}):$(id -g ${USER}) \
         -v /home/dschacherer/idc_input:/input_data \
@@ -43,7 +43,7 @@ else # run docker interactively
     docker run \
         -it \
         -p "8888:8888" \
-        --name idc-pathomics-use-case-1-training \
+        --name "idc-pathomics-use-case-1-${NOTEBOOK}" \
         --gpus all \
         -u $(id -u ${USER}):$(id -g ${USER}) \
         -v /home/dschacherer/idc_input:/input_data \
