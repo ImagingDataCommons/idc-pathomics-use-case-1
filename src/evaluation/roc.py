@@ -108,7 +108,7 @@ class ROCAnalysis():
         return all_fpr, mean_tpr, roc_auc
 
 
-    def plot(self) -> None:
+    def plot(self, output_path) -> None:
         # Plot bisector
         plt.plot(
             [0, 1],
@@ -140,3 +140,4 @@ class ROCAnalysis():
         plt.ylabel('True Positive Rate')
         plt.title('Receiver operating characteristic')
         plt.legend(loc='lower right')
+        plt.savefig(output_path)
