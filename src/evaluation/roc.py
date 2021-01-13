@@ -57,9 +57,9 @@ class ROCAnalysis():
             fpr = {}
             tpr = {}
             roc_auc = {}
-            reference = roc_data['reference_value'].tolist()
-            fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = self._generate_roc_curve(reference, prediction=roc_data['average_probability'].tolist())
-            fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = self._generate_roc_curve(reference, prediction=roc_data['percentage_positive'].tolist())
+            reference = self.roc_data['reference_value'].tolist()
+            fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = self._generate_roc_curve(reference, prediction=self.roc_data['average_probability'].tolist())
+            fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = self._generate_roc_curve(reference, prediction=self.roc_data['percentage_positive'].tolist())
         
         return fpr, tpr, roc_auc
 
