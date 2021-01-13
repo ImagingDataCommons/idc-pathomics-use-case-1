@@ -32,8 +32,8 @@ class Predictions():
     def save(self, path: str) -> None:
         self.predictions.to_json(path) # remember this can be a bottleneck at some point
 
-    def get_predictions_for_slide(self, slide_id: str) -> pd.DataFrame:
-        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['prediction']
+    def get_predictions_for_slide(self, slide_id: str) -> list:
+        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['prediction'].tolist()
     
     def get_tile_positions_for_slide(self, slide_id: str) -> list:
         return self.predictions.loc[self.predictions['slide_id'] == slide_id]['tile_position'].tolist()

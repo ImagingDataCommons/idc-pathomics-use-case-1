@@ -29,7 +29,7 @@ class ROCAnalysis():
             average_probability = np.average(slide_predictions, axis=0)
 
             if self.num_classes == 2: 
-                positive = np.where(slide_predictions >= 0.5, 1, 0)
+                positive = np.where(np.asarray(slide_predictions) >= 0.5, 1, 0)
                 percentage_positive = np.average(positive, axis=0)
             else: 
                 percentage_positive = float('NaN')
