@@ -6,25 +6,28 @@ from data.data_set import Dataset
 
 class Predictions():
     
-    def __init__(self, model: tf.keras.Model, dataset: Dataset) -> None:
+    def __init__(self, model: tf.keras.Model = None, dataset: Dataset = None, predictions: pd.DataFrame = None) -> None:
 
-        predictions_dict = {}
-        for i, data_point in enumerate(dataset.data_points):
-            print(i)
-            slide_id = data_point.get_slide_id()
-            if slide_id not in predictions_dict:
-                predictions_dict[i] = {
-                    'slide_id': slide_id,
-                    'tile_position': data_point.get_position(),
-                    'reference_value': data_point.get_reference_value(),
-                    'prediction': model.make_prediction(data_point).numpy()
-                }
-
-        self.predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
+        if predictions: 
+            self.predictions = predictions
+        else: 
+            predictions_dict = {}
+            for i, data_point in enumerate(dataset.data_points):
+                print(i)
+                slide_id = data_point.get_slide_id()
+                if slide_id not in predictions_dict:
+                    predictions_dict[i] = {
+                        'slide_id': slide_id,
+                        'tile_position': data_point.get_position(),
+                        'reference_value': data_point.get_reference_value(),
+                        'prediction': model.make_prediction(data_point).numpy()
+                    }
+            self.predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
     
     @classmethod
-    def load(self, file_path: str) -> None: 
-        self.predictions = pd.read_json(file_path)
+    def load(cls, file_path: str) -> None: 
+        predictions = pd.read_json(file_path)
+        return cls(predictions = predictions)
 
     def save(self, path: str) -> None:
         self.predictions.to_json(path) # remember this can be a bottleneck at some point
