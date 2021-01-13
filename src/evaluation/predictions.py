@@ -8,7 +8,7 @@ class Predictions():
     
     def __init__(self, model: tf.keras.Model = None, dataset: Dataset = None, predictions: pd.DataFrame = None) -> None:
 
-        if predictions: 
+        if predictions is not None: 
             self.predictions = predictions
         else: 
             predictions_dict = {}
