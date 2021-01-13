@@ -23,8 +23,7 @@ class ROCAnalysis():
         results_per_slide = defaultdict(dict)
         
         # Average predictions of tiles to obtain one prediction per slide
-        predictions = predictions.predictions 
-        for slide_id in list(set(predictions['slide_id'].tolist())):
+        for slide_id in list(set(predictions.predictions['slide_id'].tolist())):
             slide_predictions = predictions.get_predictions_for_slide(slide_id)
             reference_value = predictions.get_reference_value_for_slide(slide_id)
             average_probability = np.average(slide_predictions, axis=0)
