@@ -35,8 +35,11 @@ class Dataset:
             for batch_indices in [indices[i*batch_size : (i+1)*batch_size] for i in range(len(indices)//batch_size)]:
 
                 batch_x = np.empty((batch_size, self.patch_width, self.patch_height, self.num_channels))
-                batch_y = np.empty((batch_size))
-                
+                if self.num_classes == 2: 
+                    batch_y = np.empty((batch_size))
+                else: 
+                    batch_y = np.empty((batch_size, self.num_classes))
+                    
                 for batch_index, data_index in enumerate(batch_indices):
                     data_point = self.data_points[data_index]
                     batch_x[batch_index] = data_point.get_patch()
