@@ -12,7 +12,7 @@ class Predictions():
             self.predictions = predictions
         else: 
             predictions_dict = {}
-            for i, data_point in enumerate(dataset.data_points):
+            for i, data_point in enumerate(dataset.data_points)[:10]:
                 print(i)
                 slide_id = data_point.get_slide_id()
                 if slide_id not in predictions_dict:
@@ -23,6 +23,7 @@ class Predictions():
                         'prediction': model.make_prediction(data_point).numpy()
                     }
             self.predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
+            print(self.predictions)
     
     @classmethod
     def load(cls, file_path: str) -> None: 
