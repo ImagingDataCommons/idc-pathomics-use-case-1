@@ -12,7 +12,7 @@ class Predictions():
             self.predictions = predictions
         else: 
             predictions_dict = {}
-            for i, data_point in enumerate(dataset.data_points)[:10]:
+            for i, data_point in enumerate(dataset.data_points[:10]):
                 print(i)
                 slide_id = data_point.get_slide_id()
                 if slide_id not in predictions_dict:
