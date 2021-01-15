@@ -23,6 +23,7 @@ class Heatmap():
             slide_heatmap[c[1], c[0], :] = colormap_to_use(max(p))
         
         self.slide_heatmap = slide_heatmap
+        self.legend = colormap_to_use
 
 
     def _get_colormaps(self, colormap_strings: List[str]) -> List[matplotlib.colors.Colormap]:
@@ -37,4 +38,11 @@ class Heatmap():
     def plot(self, output_path: str) -> None:
         plt.imshow(self.slide_heatmap)
         plt.axis('off')
+        plt.colorbar(self.legend)
         plt.savefig(output_path)
+
+
+def random_heatmaps(): 
+    # ref_class, predicted_class
+    # get tp_example, fp_example, tn_example, fn_example 
+    pass 
