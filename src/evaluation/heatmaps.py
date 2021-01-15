@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import matplotlib
 import matplotlib.pyplot as plt
 from typing import List
 
@@ -24,7 +25,7 @@ class Heatmap():
         self.slide_heatmap = slide_heatmap
 
 
-    def _get_colormaps(self, colormap_strings: List[str]) -> List[plt.colors.Colormap]:
+    def _get_colormaps(self, colormap_strings: List[str]) -> List[matplotlib.colors.Colormap]:
         colormaps = []
         for cstring in colormap_strings:
             cmap = copy.copy(plt.cm.get_cmap(cstring))
