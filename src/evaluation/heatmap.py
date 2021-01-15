@@ -36,9 +36,11 @@ class Heatmap():
         return colormaps
     
     def plot(self, output_path: str) -> None:
-        plt.imshow(self.slide_heatmap)
+        fig = plt.imshow(self.slide_heatmap)
         plt.axis('off')
-        plt.colorbar()
+        cb = plt.colorbar.ColorbarBase(fig, cmap=self.legend)
+        cb.set_label('Discrete intervals, some other units')
+        #plt.colorbar() #https://matplotlib.org/3.1.0/tutorials/colors/colorbar_only.html
         plt.savefig(output_path)
 
 
