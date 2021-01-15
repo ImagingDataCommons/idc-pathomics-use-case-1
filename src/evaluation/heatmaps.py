@@ -13,7 +13,7 @@ class Heatmap():
         pred = predictions.get_predictions_for_slide(slide_id)
         coord = predictions.get_tile_positions_for_slide(slide_id)
         max_cols, max_rows = max([c[0] for c in coord]) + 1, max([c[1] for c in coord]) + 1
-        colormaps = _get_colormaps(colormap_strings)
+        colormaps = self._get_colormaps(colormap_strings)
 
         # create heatmap
         slide_heatmap = -1 * np.ones((max_rows, max_cols, 4))
