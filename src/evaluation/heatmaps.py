@@ -32,3 +32,7 @@ class Heatmap():
             cmap.set_under(alpha=0)
             colormaps.append(cmap)
         return colormaps
+    
+    def plot(self, output_path: str) -> None:
+        plt.imshow(self.slide_heatmap)
+        plt.savefig(output_path)
