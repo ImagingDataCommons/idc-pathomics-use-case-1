@@ -38,7 +38,7 @@ class Heatmap():
     def plot(self, output_path: str) -> None:
         plt.imshow(self.slide_heatmap)
         plt.axis('off')
-        plt.colorbar(self.legend)
+        plt.colorbar()
         plt.savefig(output_path)
 
 
