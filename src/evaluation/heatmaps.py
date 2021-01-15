@@ -18,6 +18,7 @@ class Heatmap():
         # create heatmap
         slide_heatmap = -1 * np.ones((max_rows, max_cols, 4))
         for c, p in zip(coord, pred):
+            print('p', p)
             colormap_to_use = colormaps[p.index(max(p))] 
             slide_heatmap[c[1], c[0], :] = colormap_to_use(max(p))
         
