@@ -42,6 +42,7 @@ class ROCAnalysis():
         result_df = pd.DataFrame(results_per_slide).T
         result_df.reset_index(inplace=True)
         result_df.rename({'index':'slide_id'}, axis='columns', inplace=True)
+        print(len(result_df))
 
         return result_df
 
