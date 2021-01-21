@@ -79,7 +79,7 @@ class ROCAnalysis():
         # Generate macro-average and micro-average ROC curve
         fpr['macro'], tpr['macro'], roc_auc['macro'] = self._generate_macro_average_roc(tpr, fpr)
 
-        all_predictions = [i for x in result_df['average_probability'] for i in x]
+        all_predictions = [i for x in self.roc_data['average_probability'] for i in x]
         fpr['micro'], tpr['micro'], roc_auc['micro'] = self._generate_roc_curve(reference.ravel(), all_predictions)
 
         return fpr, tpr, roc_auc 
