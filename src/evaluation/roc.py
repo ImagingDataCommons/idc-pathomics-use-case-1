@@ -109,6 +109,7 @@ class ROCAnalysis():
 
 
     def plot(self, output_path) -> None:
+        print(self.roc_data)
         # Plot bisector
         plt.plot(
             [0, 1],
@@ -141,3 +142,4 @@ class ROCAnalysis():
         plt.title('Receiver operating characteristic')
         plt.legend(loc='lower right')
         plt.savefig(output_path)
+        plt.close()
