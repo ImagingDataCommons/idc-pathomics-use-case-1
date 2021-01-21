@@ -102,7 +102,7 @@ class ROCAnalysis():
         mean_tpr = np.zeros_like(all_fpr)
         for i in range(3):
             mean_tpr += interp(all_fpr, fpr[i], tpr[i])
-        mean_tpr = mean_tpr/num_classes  
+        mean_tpr = mean_tpr/self.num_classes  
 
         roc_auc = auc(all_fpr, mean_tpr)
         return all_fpr, mean_tpr, roc_auc
