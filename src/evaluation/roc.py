@@ -10,11 +10,13 @@ from typing import Tuple, List, Dict
 
 from evaluation.predictions import Predictions 
 
+EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 1:'LUSC'}, 'norm_luad_lusc': {'normal':0, 'luad':1, 'lusc':2}}
 
 class ROCAnalysis():
 
-    def __init__(self, predictions: Predictions, num_classes: int) -> None:
-        self.num_classes = num_classes
+    def __init__(self, predictions: Predictions, experiment: str) -> None:
+        self.experiment = experiment
+        self.num_classes = len(EXPERIMENTS[experiment])
         self.roc_data = self._prepare_data_for_roc_analysis(predictions)
         self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
 
@@ -42,7 +44,6 @@ class ROCAnalysis():
         result_df = pd.DataFrame(results_per_slide).T
         result_df.reset_index(inplace=True)
         result_df.rename({'index':'slide_id'}, axis='columns', inplace=True)
-        print(result_df)
 
         return result_df
 
@@ -122,24 +123,26 @@ class ROCAnalysis():
 
         # Plot ROC curves
         colors = ['orange', 'aqua', 'red', 'yellowgreen', 'yellow', 'magenta', 'royalblue', 'green', 'burlywood', 'grey']
-        averaging_method = 'avg_prob'
         for i, key in enumerate(self.fpr):
-            if key == 'percentage_positive': 
-                averaging_method = 'per_pos'
+            if self.num_classes == 2:
+                label='%s (area = %0.3f)' % (key, self.roc_auc[key])
+            else:
+                class_to_str_mapping = {0:'Normal', 1:'LUAD', 2:'LUSC'} # replace this by something not hard-coded
+                label='%s [avg_prob] (area = %0.3f)' % (class_to_str_mapping[key], self.roc_auc[key])
             plt.plot(
                 self.fpr[key],
                 self.tpr[key],
                 color=colors[i],
                 linewidth=2,
-                label='%s [%s] (area = %0.2f)' % (key, averaging_method, self.roc_auc[key])
+                label=label)
             )
 
         """ TODO: add class for multiclass roc curves """ 
 
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
         plt.title('Receiver operating characteristic')
         plt.legend(loc='lower right')
         plt.savefig(output_path)
