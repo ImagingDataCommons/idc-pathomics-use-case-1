@@ -25,12 +25,16 @@ class InceptionModel(BaseModel):
             configs['num_outputs'] = 1  
             configs['classifier_activation'] = 'sigmoid'
             configs['loss'] = 'binary_crossentropy'
-        elif 2 < num_classes < 11: 
+        elif num_classes == 3: 
             configs['num_outputs'] = num_classes 
             configs['classifier_activation'] = 'softmax'
             configs['loss'] = 'categorical_crossentropy'
+        elif num_classes == 10:
+            configs['num_outputs'] = num_classes 
+            configs['classifier_activation'] = 'sigmoid'
+            configs['loss'] = 'binary_crossentropy'
         else:
-            raise Exception('Number of classes has to be in [2,10].')
+            raise Exception('Number of classes has to be in 2, 3 or 10.')
         return configs
 
     def _add_top_layers(self, model: tf.keras.Model, classifier_activation: str, num_classes: int) -> tf.keras.Model:
