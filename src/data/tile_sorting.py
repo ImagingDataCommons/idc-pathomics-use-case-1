@@ -44,7 +44,7 @@ def run_tile_sorting(source_folder: str, json_file: str, output_folder: str, sor
     patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data)
     slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data)
     patient_to_category = _assign_patients_to_category(patient_meta, classes) 
-    _write_csv_files(slide_folders, output_folder, patient_meta, patient_to_category, slides_meta, classes, sorting_option)
+    _write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option)
 
 
 def _get_classes(sorting_option: str) -> Dict[str, int]:
@@ -166,7 +166,7 @@ def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, 
     return patient_to_category
 
 
-def _write_csv_files(slide_folders: str, output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: str) -> None:
+def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: str) -> None:
     path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '.csv')
     path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '.csv')
     path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '.csv')
@@ -179,10 +179,10 @@ def _write_csv_files(slide_folders: str, output_folder: str, patient_meta: pd.Da
 
         # Fill csv files
         for slide_folder in slide_folders:
-            _write_info(slide_folder, output_csv, output_folder, patient_meta, patient_to_category, slides_meta, classes)
+            _write_info(slide_folder, output_csv, output_folder, patient_to_category, slides_meta, classes)
             
 
-def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_meta: pd.DataFrame, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int]) -> None:
+def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int]) -> None:
     patient = slide_folder.split('/')[-1][:12]
     if patient in patient_to_category: 
         category = patient_to_category[patient]
