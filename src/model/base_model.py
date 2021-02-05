@@ -68,7 +68,7 @@ class BaseModel:
             filename=os.path.join(output_path, 'train.csv')
         )
 
-        history = self.model.fit(
+        self.model.fit(
             training_generator,
             epochs=epochs,
             max_queue_size=max_queue_size,
@@ -78,7 +78,6 @@ class BaseModel:
             callbacks=[save_model_callback, csv_logger_callback], 
             class_weight=class_weights
         )
-        return history
 
     def make_prediction(self, data_point: DataPoint) -> np.ndarray:
         # add batch dimension
