@@ -11,17 +11,24 @@ from data.data_point import DataPoint
 class Dataset:
     
     def __init__(self, csv_file: str, num_classes: int) -> None:
+        self.num_classes = num_classes
         self.data_points = []
+        
         base_path = os.path.abspath(os.path.split(csv_file)[0])
         with open(csv_file, mode='r') as f:
             csv_reader = csv.DictReader(f)
             for entry in csv_reader:
+                if self.num_classes == 10:
+                    reference_value = [int(x) for x in entry['reference_value'].split(';')]
+                else: 
+                    reference_value = int(entry['reference_value'])
                 self.data_points.append(DataPoint(
-                    os.path.join(base_path, entry['path']),
-                    int(entry['reference_value'])
-                ))
+                        os.path.join(base_path, entry['path']), 
+                        reference_value
+                    ))
+                    
         self.patch_width, self.patch_height, self.num_channels = self.data_points[0].get_patch().shape
-        self.num_classes = num_classes
+        
 
     def __len__(self) -> int:
         return len(self.data_points)
@@ -45,11 +52,19 @@ class Dataset:
                     batch_x[batch_index] = data_point.get_patch()
                     if self.num_classes == 2: 
                         batch_y[batch_index] = data_point.get_reference_value()
-                    else: 
-                        # if nr_classes > 2, generate one-hot-encoding for the reference 
-                        batch_y[batch_index] = to_categorical(data_point.get_reference_value(), num_classes=self.num_classes) 
-                
+                    elif self.num_classes == 3: 
+                        # generate one-hot-encoding for the reference 
+                        batch_y[batch_index] = to_categorical(data_point.get_reference_value(), num_classes=3) 
+                    elif self.num_classes == 10:
+                        # generate k-hot-encoding for the reference
+                        batch_y[batch_index] = self.to_k_hot_encoding(data_point)
+                                        
                 yield batch_x, batch_y, [None]
             
             if not infinite:
                 break
+
+    def to_k_hot_encoding(self, data_point):
+        one_hot_in_lines = to_categorical(data_point.get_reference_value(), num_classes=10)
+        k_hot = one_hot_in_lines.sum(axis=0)
+        return k_hot

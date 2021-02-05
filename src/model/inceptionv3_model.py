@@ -34,7 +34,7 @@ class InceptionModel(BaseModel):
             configs['classifier_activation'] = 'sigmoid'
             configs['loss'] = 'binary_crossentropy'
         else:
-            raise Exception('Number of classes has to be in 2, 3 or 10.')
+            raise Exception('Number of classes has to be 2, 3 or 10.')
         return configs
 
     def _add_top_layers(self, model: tf.keras.Model, classifier_activation: str, num_classes: int) -> tf.keras.Model:
