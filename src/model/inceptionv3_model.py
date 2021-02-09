@@ -15,7 +15,7 @@ class InceptionModel(BaseModel):
         model = tf.keras.applications.InceptionV3(include_top=False, weights=None, input_shape=input_shape)
         model = self._add_top_layers(model, configs['classifier_activation'], configs['num_outputs'])
         opt = tf.keras.optimizers.RMSprop(lr=learning_rate, rho=0.9, momentum=0.9, epsilon=1.0)
-        model.compile(optimizer=opt, loss=configs['loss'], metrics=[tf.keras.metrics.AUC(curve='ROC')]) # note that AUC is on tile-level, not on slide-levela as in the final evaluation
+        model.compile(optimizer=opt, loss=configs['loss'], metrics=[configs['metric']]) # note that AUC is on tile-level, not on slide-levela as in the final evaluation
         return model
 
     def _define_configurations(self, num_classes: int) -> Dict[str, Union[str, int]]:
@@ -25,14 +25,17 @@ class InceptionModel(BaseModel):
             configs['num_outputs'] = 1  
             configs['classifier_activation'] = 'sigmoid'
             configs['loss'] = 'binary_crossentropy'
+            configs['metric'] = tf.keras.metrics.AUC(curve='ROC')
         elif num_classes == 3: 
             configs['num_outputs'] = num_classes 
             configs['classifier_activation'] = 'softmax'
             configs['loss'] = 'categorical_crossentropy'
+            configs['metric'] = tf.keras.metrics.AUC(curve='ROC')
         elif num_classes == 10:
             configs['num_outputs'] = num_classes 
             configs['classifier_activation'] = 'sigmoid'
             configs['loss'] = 'binary_crossentropy'
+            configs['metric'] = tf.keras.metrics.AUC(curve='ROC', multi_label=True)
         else:
             raise Exception('Number of classes has to be 2, 3 or 10.')
         return configs
