@@ -23,7 +23,6 @@ class ROCAnalysis():
 
     def _prepare_data_for_roc_analysis(self, predictions: Predictions) -> pd.DataFrame:
         results_per_slide = defaultdict(dict)
-        print('listlen', len(list(set(predictions.predictions['slide_id'].tolist()))))
         # Average predictions of tiles to obtain one prediction per slide
         for slide_id in list(set(predictions.predictions['slide_id'].tolist())):
             slide_predictions = predictions.get_predictions_for_slide(slide_id)
@@ -44,7 +43,7 @@ class ROCAnalysis():
         result_df = pd.DataFrame(results_per_slide).T
         result_df.reset_index(inplace=True)
         result_df.rename({'index':'slide_id'}, axis='columns', inplace=True)
-
+        print(result_df)
         return result_df
 
 
