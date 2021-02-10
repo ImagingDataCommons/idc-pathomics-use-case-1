@@ -7,6 +7,8 @@ from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import label_binarize
 from scipy import interp
 from typing import Tuple, List, Dict
+pd.set_option("display.max_columns", None)
+
 
 from evaluation.predictions import Predictions 
 
@@ -33,13 +35,14 @@ class ROCAnalysis():
                 positive = np.where(np.asarray(slide_predictions) >= 0.5, 1, 0)
                 percentage_positive = np.average(positive, axis=0)
             else: 
-                percentage_positive = float('NaN')
+                percentage_positive = float('NaN') # TODO 
             
             results_per_slide[slide_id]['reference_value'] = reference_value
             results_per_slide[slide_id]['average_probability'] = average_probability
             results_per_slide[slide_id]['percentage_positive'] = percentage_positive
         
-        # Turn results into pandas data frame
+        # Turn results into pandas data frame: slide_id (str) | reference_value (int) | average_probability (list[int]) | percentage_positive (list[int]))
+        # Note: In two-class problem, average_probability and percentage_positive contain only one value, otherwise correspondingly to the number of classes.
         result_df = pd.DataFrame(results_per_slide).T
         result_df.reset_index(inplace=True)
         result_df.rename({'index':'slide_id'}, axis='columns', inplace=True)
@@ -59,16 +62,19 @@ class ROCAnalysis():
             tpr = {}
             roc_auc = {}
             reference = self.roc_data['reference_value'].tolist()
-            fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = self._generate_roc_curve(reference, prediction=self.roc_data['average_probability'].tolist())
-            fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = self._generate_roc_curve(reference, prediction=self.roc_data['percentage_positive'].tolist())
+            fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = self._generate_roc_curve(reference, prediction=self._ravel_helper(self.roc_data['average_probability']))
+            fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = self._generate_roc_curve(reference, prediction=self._ravel_helper(self.roc_data['percentage_positive']))
         
         return fpr, tpr, roc_auc
+
+
+    def _ravel_helper(self, list_of_arrays):
+        return np.concatenate(list_of_arrays).ravel().tolist()
 
 
     def _generate_multiclass_roc_curves(self) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]: 
         # Binarize the reference values 
         reference = label_binarize(self.roc_data['reference_value'].tolist(), classes=[i for i in range(self.num_classes)])
-
         # Compute ROC curve and ROC area for each class vs. rest
         fpr = {}
         tpr = {}
@@ -110,7 +116,6 @@ class ROCAnalysis():
 
 
     def plot(self, output_path) -> None:
-        print(self.roc_data)
         # Plot bisector
         plt.plot(
             [0, 1],
@@ -133,7 +138,7 @@ class ROCAnalysis():
                 self.tpr[key],
                 color=colors[i],
                 linewidth=2,
-                label=label)
+                label=label
             )
 
         """ TODO: add class for multiclass roc curves """ 
