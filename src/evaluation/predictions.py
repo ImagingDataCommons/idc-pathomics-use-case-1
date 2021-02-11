@@ -39,6 +39,9 @@ class Predictions():
 
     def get_reference_value_for_slide(self, slide_id: str) -> int:
         return self.predictions.loc[self.predictions['slide_id'] == slide_id]['reference_value'].tolist()[0]
+    
+    def get_all_reference_values_for_slide(self, slide_id: str) -> list:
+        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['reference_value'].tolist()
 
 
     
