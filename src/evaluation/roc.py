@@ -28,14 +28,16 @@ class ROCAnalysis():
         # Average predictions of tiles to obtain one prediction per slide
         for slide_id in list(set(predictions.predictions['slide_id'].tolist())):
             slide_predictions = predictions.get_predictions_for_slide(slide_id)
+            print(slide_predictions)
             reference_value = predictions.get_reference_value_for_slide(slide_id)
             average_probability = np.average(slide_predictions, axis=0)
 
             if self.num_classes == 2: 
+                print(np.asarray(slide_predictions))
                 positive = np.where(np.asarray(slide_predictions) >= 0.5, 1, 0)
                 percentage_positive = np.average(positive, axis=0)
             else: 
-                percentage_positive = float('NaN') # TODO 
+                positive = np.where(np.asarray)
             
             results_per_slide[slide_id]['reference_value'] = reference_value
             results_per_slide[slide_id]['average_probability'] = average_probability
@@ -75,6 +77,7 @@ class ROCAnalysis():
     def _generate_multiclass_roc_curves(self) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]: 
         # Binarize the reference values 
         reference = label_binarize(self.roc_data['reference_value'].tolist(), classes=[i for i in range(self.num_classes)])
+        
         # Compute ROC curve and ROC area for each class vs. rest
         fpr = {}
         tpr = {}
@@ -82,12 +85,13 @@ class ROCAnalysis():
         for i in range(self.num_classes):
             prediction = [x[i] for x in self.roc_data['average_probability']]
             fpr[i], tpr[i], roc_auc[i] = self._generate_roc_curve(reference[:, i], prediction)
+        
+        # Generate macro-average and micro-average ROC curve for the three-class classification problem
+        if self.num_classes == 3:
+            fpr['macro'], tpr['macro'], roc_auc['macro'] = self._generate_macro_average_roc(tpr, fpr)
 
-        # Generate macro-average and micro-average ROC curve
-        fpr['macro'], tpr['macro'], roc_auc['macro'] = self._generate_macro_average_roc(tpr, fpr)
-
-        all_predictions = [i for x in self.roc_data['average_probability'] for i in x]
-        fpr['micro'], tpr['micro'], roc_auc['micro'] = self._generate_roc_curve(reference.ravel(), all_predictions)
+            all_predictions = [i for x in self.roc_data['average_probability'] for i in x]
+            fpr['micro'], tpr['micro'], roc_auc['micro'] = self._generate_roc_curve(reference.ravel(), all_predictions)
 
         return fpr, tpr, roc_auc 
 
