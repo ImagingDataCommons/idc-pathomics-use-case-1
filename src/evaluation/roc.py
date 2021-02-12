@@ -22,38 +22,30 @@ class ROCAnalysis():
     def __init__(self, predictions: Predictions, experiment: str) -> None:
         self.experiment = experiment
         self.num_classes = len(EXPERIMENTS[experiment])
+        # Tile-based analysis
+        self.tile_auc = self._tile_based_roc_auc(predictions)
         # Slide-based analysis
         self.roc_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
-        self.roc = self._tile_based_roc_auc(predictions)
-        #self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
+        self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
 
 
-    def _tile_based_roc_auc(self, predictions: Predictions) -> float:
+    def _tile_based_roc_auc(self, predictions: Predictions) -> List[float]:
+        reference = []
+        prediction = []
         all_slide_ids = list(set(predictions.predictions['slide_id'].tolist()))
-
-        if self.num_classes == 2: 
-            reference = []
-            prediction = []
-            for slide_id in all_slide_ids: 
-                reference.extend(predictions.get_all_reference_values_for_slide(slide_id))
-                prediction.extend(predictions.get_predictions_for_slide(slide_id))
-            prediction = list(chain.from_iterable(prediction))    
-            auc = roc_auc_score(reference, prediction)
-            print(auc)
-            
-        elif self.num_classes == 3: 
-            reference = []
-            prediction = []
-            for slide_id in all_slide_ids: 
-                reference.extend(predictions.get_all_reference_values_for_slide(slide_id))
-                prediction.extend(predictions.get_predictions_for_slide(slide_id))
-            print(reference)
-            print(prediction) 
-            print(len(reference), len(prediction))
+        for slide_id in all_slide_ids: 
+            reference.extend(predictions.get_all_reference_values_for_slide(slide_id))
+            prediction.extend(predictions.get_predictions_for_slide(slide_id))
         
-        else: 
-            pass 
+        if self.num_classes == 2: 
+            prediction = list(chain.from_iterable(prediction))    
+            auc = list(roc_auc_score(reference, prediction))
 
+        else: # multi-class and multi-class multi-label data: Calculate AUC for each class separately  
+            reference = self._binarize_labels(reference)         
+            auc = roc_auc_score(reference, prediction, average=None)
+        print('tilebased', auc)
+        return auc
 
 
     def _prepare_data_for_slide_based_roc_analysis(self, predictions: Predictions) -> pd.DataFrame:
