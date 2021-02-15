@@ -39,7 +39,7 @@ class ROCAnalysis():
         
         if self.num_classes == 2: 
             prediction = list(chain.from_iterable(prediction))    
-            auc = list(roc_auc_score(reference, prediction))
+            auc = [roc_auc_score(reference, prediction)]
 
         else: # multi-class and multi-class multi-label data: Calculate AUC for each class separately  
             reference = self._binarize_labels(reference)         
