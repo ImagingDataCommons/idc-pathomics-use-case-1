@@ -25,27 +25,57 @@ class ROCAnalysis():
         # Tile-based analysis
         self.tile_auc = self._tile_based_roc_auc(predictions)
         # Slide-based analysis
-        self.roc_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
-        self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
+        #self.roc_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
+        #self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
 
 
     def _tile_based_roc_auc(self, predictions: Predictions) -> List[float]:
         reference = []
         prediction = []
+
         all_slide_ids = list(set(predictions.predictions['slide_id'].tolist()))
         for slide_id in all_slide_ids: 
             reference.extend(predictions.get_all_reference_values_for_slide(slide_id))
             prediction.extend(predictions.get_predictions_for_slide(slide_id))
-        
+        print(reference, prediction)
+        reference = np.asarray(reference)
+        prediction = np.asarray(prediction) 
+        print(reference, prediction)
+
         if self.num_classes == 2: 
-            prediction = list(chain.from_iterable(prediction))    
+            prediction = list(chain.from_iterable(prediction)) 
             auc = [roc_auc_score(reference, prediction)]
+            ci = self._get_confidence_interval_by_bootstrapping(reference, prediction)
 
         else: # multi-class and multi-class multi-label data: Calculate AUC for each class separately  
-            reference = self._binarize_labels(reference)         
+            reference = self._binarize_labels(reference) # TODO input should also be array not list         
             auc = roc_auc_score(reference, prediction, average=None)
         print('tilebased', auc)
         return auc
+
+
+    def _get_confidence_interval_by_bootstrapping(self, reference: np.ndarray, prediction: np.ndarray, num_bootstraps: int = 1000) -> List[float]: 
+        # TODO special case for macro ROC auc?! 
+        bootstrap_scores = []
+
+        for i in range(num_bootstraps):
+            bootstrap_indices = np.random.randint(0, len(reference), size=len(reference))
+            reference_sample = reference[bootstrap_indices]
+            prediction_sample = prediction[bootstrap_indices]
+            print(type(reference_sample), type(prediction_sample))
+            # We need at least one positive and one negative sample
+            if len(np.unique(reference_sample)) < 2:
+                continue
+            else: 
+                auc = roc_auc_score(reference_sample, prediction_sample)
+                bootstrap_scores.append(auc)
+
+        bootstrap_scores = np.asarray(bootstrap_scores)
+        bootstrap_scores.sort()
+
+        ci_lower = bootstrap_scores[int(0.025* len(bootstrap_scores))]
+        ci_upper = bootstrap_scores[int(0.975* len(bootstrap_scores))]
+        return [ci_lower, ci_upper]  
 
 
     def _prepare_data_for_slide_based_roc_analysis(self, predictions: Predictions) -> pd.DataFrame:
