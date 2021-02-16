@@ -14,7 +14,7 @@ pd.set_option("display.max_columns", None)
 
 from evaluation.predictions import Predictions 
 
-EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 1:'LUSC'}, 'norm_luad_lusc': {'Normal':0, 'LUAD':1, 'LUSC':2}, 
+EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 1:'LUSC'}, 'norm_luad_lusc': {0:'Normal', 1:'LUAD', 2:'LUSC'}, 
                'mutations': {0: 'STK11', 1: 'EGFR', 2: 'SETBP1', 3: 'TP53', 4: 'FAT1', 5: 'KRAS', 6: 'KEAP1', 7: 'LRP1B', 8: 'FAT4', 9: 'NF1'}}
 
 class ROCAnalysis():
