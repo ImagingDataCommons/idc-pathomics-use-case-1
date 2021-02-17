@@ -37,20 +37,28 @@ class ROCAnalysis():
         for slide_id in all_slide_ids: 
             reference.extend(predictions.get_all_reference_values_for_slide(slide_id))
             prediction.extend(predictions.get_predictions_for_slide(slide_id))
-        print(reference, prediction)
         reference = np.asarray(reference)
         prediction = np.asarray(prediction) 
-        print(reference, prediction)
 
         if self.num_classes == 2: 
-            prediction = list(chain.from_iterable(prediction)) 
+            prediction = np.reshape(prediction, (1, -1)).squeeze()
             auc = [roc_auc_score(reference, prediction)]
             ci = self._get_confidence_interval_by_bootstrapping(reference, prediction)
 
         else: # multi-class and multi-class multi-label data: Calculate AUC for each class separately  
-            reference = self._binarize_labels(reference) # TODO input should also be array not list         
+            reference = self._binarize_labels(reference)         
             auc = roc_auc_score(reference, prediction, average=None)
-        print('tilebased', auc)
+            print(self.num_classes)
+            for i in range(self.num_classes):
+                reference_class = reference[:, i]
+                prediction_class = prediction[:,i]
+                ci = self._get_confidence_interval_by_bootstrapping(reference_class, prediction_class)
+                print(ci)
+            
+            if self.num_classes == 3: 
+                x=1 
+                # micro and macro ci
+
         return auc
 
 
@@ -62,7 +70,6 @@ class ROCAnalysis():
             bootstrap_indices = np.random.randint(0, len(reference), size=len(reference))
             reference_sample = reference[bootstrap_indices]
             prediction_sample = prediction[bootstrap_indices]
-            print(type(reference_sample), type(prediction_sample))
             # We need at least one positive and one negative sample
             if len(np.unique(reference_sample)) < 2:
                 continue
@@ -148,7 +155,7 @@ class ROCAnalysis():
         return fpr, tpr, roc_auc 
 
 
-    def _binarize_labels(self, values: List[List[float]]) -> np.ndarray:
+    def _binarize_labels(self, values: np.ndarray) -> np.ndarray:
         if self.num_classes == 10: # multi-label
             mlb = MultiLabelBinarizer(classes=[i for i in range(self.num_classes)])
             binarized = mlb.fit_transform(values)
