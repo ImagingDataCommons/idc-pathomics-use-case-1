@@ -22,17 +22,17 @@ class ROCAnalysis():
     def __init__(self, predictions: Predictions, experiment: str) -> None:
         self.experiment = experiment
         self.num_classes = len(EXPERIMENTS[experiment])
+        
         # Tile-based analysis
-        self.tile_auc = self._tile_based_roc_auc(predictions)
+        self.tile_roc_auc, self.tile_ci = self._run_tile_based_roc_analysis(predictions)
         # Slide-based analysis
         self.roc_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
-        self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
+        self.fpr, self.tpr, self.roc_auc, self.ci = self._run_slide_based_roc_analysis()
 
 
-    def _tile_based_roc_auc(self, predictions: Predictions) -> List[float]:
+    def _run_tile_based_roc_analysis(self, predictions: Predictions) -> Tuple[float, list):
         reference = []
         prediction = []
-
         all_slide_ids = list(set(predictions.predictions['slide_id'].tolist()))
         for slide_id in all_slide_ids: 
             reference.extend(predictions.get_all_reference_values_for_slide(slide_id))
@@ -45,20 +45,18 @@ class ROCAnalysis():
             auc = [roc_auc_score(reference, prediction)]
             ci = self._get_confidence_interval_by_bootstrapping(reference, prediction)
 
-        else: # multi-class and multi-class multi-label data: Calculate AUC for each class separately  
+        # Multi-class and multi-class multi-label data: Calculate AUC for each class separately      
+        else: 
             reference = self._binarize_labels(reference)         
             auc = roc_auc_score(reference, prediction, average=None)
             for i in range(self.num_classes):
-                reference_class = reference[:, i]
-                prediction_class = prediction[:,i]
-                ci = self._get_confidence_interval_by_bootstrapping(reference_class, prediction_class)
-                print(ci)
+                ci = self._get_confidence_interval_by_bootstrapping(reference[:, i], prediction[:,i])
             
             if self.num_classes == 3: 
-                x=1 
-                # micro and macro ci
-
-        return auc
+                pass 
+                # ev. TODO: micro and macro ci
+        
+        return auc, ci
 
 
     def _get_confidence_interval_by_bootstrapping(self, reference: np.ndarray, prediction: np.ndarray, num_bootstraps: int = 1000) -> List[float]: 
@@ -78,7 +76,6 @@ class ROCAnalysis():
 
         bootstrap_scores = np.asarray(bootstrap_scores)
         bootstrap_scores.sort()
-
         ci_lower = bootstrap_scores[int(0.025* len(bootstrap_scores))]
         ci_upper = bootstrap_scores[int(0.975* len(bootstrap_scores))]
         return [ci_lower, ci_upper]  
@@ -110,26 +107,29 @@ class ROCAnalysis():
         return result_df
 
 
-    def _run_roc_analysis(self) -> Tuple[dict, dict, dict]:
+    def _run_slide_based_roc_analysis(self) -> Tuple[dict, dict, dict, dict]:
         
         # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC, only for averaging method 'average_probability'
         if self.num_classes > 2: 
-            fpr, tpr, roc_auc = self._generate_multiclass_roc_curves()
+            fpr, tpr, roc_auc, ci = self._generate_multiclass_roc_curves()
 
         # Two-class ROC curve, consider both averaging methods, i.e. average_probability and percentage_positive
         else: 
             fpr = {}
             tpr = {}
             roc_auc = {}
+            ci = {}
             reference = self.roc_data['reference_value'].tolist()
-            fpr['average_probability'], tpr['average_probability'], roc_auc['average_probability'] = self._generate_roc_curve(reference, prediction=self._ravel_helper(self.roc_data['average_probability']))
-            fpr['percentage_positive'], tpr['percentage_positive'], roc_auc['percentage_positive'] = self._generate_roc_curve(reference, prediction=self._ravel_helper(self.roc_data['percentage_positive']))
+            for column in ['average_probability', 'percentage_positive']:
+                prediction = np.concatenate(self.roc_data[column]).ravel()
+                fpr[column], tpr[column], roc_auc[column] = self._generate_roc_curve(reference, prediction=self._ravel_helper(self.roc_data[column]))
+                ci[column] = self._get_confidence_interval_by_bootstrapping(np.asarray(reference), prediction)
         
-        return fpr, tpr, roc_auc
+        return fpr, tpr, roc_auc, ci
 
 
-    def _ravel_helper(self, list_of_arrays: List[np.ndarray]) -> List[float]:
-        return np.concatenate(list_of_arrays).ravel().tolist()
+    def _ravel_helper(self, list_of_arrays: List[np.ndarray]) -> np.ndarray:
+        return np.concatenate(list_of_arrays).ravel()
 
 
     def _generate_multiclass_roc_curves(self) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]: 
@@ -137,21 +137,28 @@ class ROCAnalysis():
         reference = self._binarize_labels(self.roc_data['reference_value'].tolist())
 
         # Compute ROC curve and ROC area for each class vs. rest
-        fpr = {}
-        tpr = {}
-        roc_auc = {}
+        fpr = defaultdict(dict)
+        tpr = defaultdict(dict)
+        roc_auc = defaultdict(dict)
+        ci = defaultdict(dict)
         for i in range(self.num_classes):
-            prediction = [x[i] for x in self.roc_data['average_probability']]
-            fpr[i], tpr[i], roc_auc[i] = self._generate_roc_curve(reference[:, i], prediction)
-        
+            for column in ['percentage_positive', 'average_probability']:
+                prediction = np.asarray([x[i] for x in self.roc_data[column]])
+                fpr[column][i], tpr[column][i], roc_auc[column][i] = self._generate_roc_curve(reference[:, i], prediction)
+                ci[column][i] = self._get_confidence_interval_by_bootstrapping(reference[:,i], prediction)
+
         # Generate macro-average and micro-average ROC curve for the three-class classification problem
         if self.num_classes == 3:
-            fpr['macro'], tpr['macro'], roc_auc['macro'] = self._generate_macro_average_roc(tpr, fpr)
+            for column in ['percentage_positive', 'average_probability']:
+                fpr[column]['macro'], tpr[column]['macro'], roc_auc[column]['macro'] = self._generate_macro_average_roc(tpr[column], fpr[column])
+                # TODO ci['macro] 
 
-            all_predictions = [i for x in self.roc_data['average_probability'] for i in x]
-            fpr['micro'], tpr['micro'], roc_auc['micro'] = self._generate_roc_curve(reference.ravel(), all_predictions)
+                all_predictions = np.asarray([i for x in self.roc_data[column] for i in x])
+                fpr[column]['micro'], tpr[column]['micro'], roc_auc[column]['micro'] = self._generate_roc_curve(reference.ravel(), all_predictions)
+                ci[column]['micro'] = self._get_confidence_interval_by_bootstrapping(reference.ravel(), all_predictions)
 
-        return fpr, tpr, roc_auc 
+        print(roc_auc, ci)
+        return fpr, tpr, roc_auc, ci
 
 
     def _binarize_labels(self, values: np.ndarray) -> np.ndarray:
@@ -163,7 +170,8 @@ class ROCAnalysis():
         return binarized
 
 
-    def _generate_roc_curve(self, reference: List[float], prediction: List[float]) -> Tuple[np.ndarray, np.ndarray, float]:
+    def _generate_roc_curve(self, reference: np.ndarray, prediction: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
+        print(reference, prediction, type(reference), type(prediction))
         fpr, tpr, _ = roc_curve(
             y_true = reference,
             y_score = prediction
