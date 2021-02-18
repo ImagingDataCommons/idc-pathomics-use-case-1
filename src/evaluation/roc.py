@@ -25,8 +25,8 @@ class ROCAnalysis():
         # Tile-based analysis
         self.tile_auc = self._tile_based_roc_auc(predictions)
         # Slide-based analysis
-        #self.roc_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
-        #self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
+        self.roc_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
+        self.fpr, self.tpr, self.roc_auc = self._run_roc_analysis()
 
 
     def _tile_based_roc_auc(self, predictions: Predictions) -> List[float]:
@@ -48,7 +48,6 @@ class ROCAnalysis():
         else: # multi-class and multi-class multi-label data: Calculate AUC for each class separately  
             reference = self._binarize_labels(reference)         
             auc = roc_auc_score(reference, prediction, average=None)
-            print(self.num_classes)
             for i in range(self.num_classes):
                 reference_class = reference[:, i]
                 prediction_class = prediction[:,i]
