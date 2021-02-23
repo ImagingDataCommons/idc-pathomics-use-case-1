@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from glob import glob 
 from collections import defaultdict
-from typing import Dict
+from typing import List, Dict
 
 MUTATION_LABELS = {'stk11':0, 'egfr':1, 'setbp1':2, 'tp53':3, 'fat1':4, 'kras':5, 'keap1':6, 'lrp1b':7, 'fat4':8, 'nf1':9}
 
@@ -26,7 +26,7 @@ def prepare_mutation_data(source_folder: str, mutations_gt_path: str, tiles_pred
         with open(slides_meta_path, 'r') as slides_meta_file: 
             slides_meta = json.loads(slides_meta_file.read())
     
-    if predicted_luad_tiles: 
+    if tiles_predicted_as_luad: 
         luad_tiles = _load_predicted_as_luad(tiles_predicted_as_luad)
         _write_csv_files(slide_folders, source_folder, patient_to_category, mutations_per_patient, slides_meta, luad_tiles)
     else: 
@@ -82,7 +82,7 @@ def _load_predicted_as_luad(predicted_luad_tiles):
     return luad_tiles
 
 
-def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], mutations_per_patient: Dict[str, list], slides_meta: Dict[str, str]) -> None:
+def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], mutations_per_patient: Dict[str, list], slides_meta: Dict[str, str], luad_tiles: List[str] = None) -> None:
     path_train = os.path.join(output_folder, 'csv_train_mutations.csv')
     path_test = os.path.join(output_folder, 'csv_test_mutations.csv')
     path_valid = os.path.join(output_folder, 'csv_valid_mutations.csv')
@@ -95,7 +95,7 @@ def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category
 
         # Fill csv 
         for slide_folder in slide_folders:
-            _write_info(slide_folder, output_csv, output_folder, patient_to_category, mutations_per_patient, slides_meta)
+            _write_info(slide_folder, output_csv, output_folder, patient_to_category, mutations_per_patient, slides_meta, luad_tiles)
             
 
 def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], mutations_per_patient: Dict[str, list], slides_meta: Dict[str, str], luad_tiles: List[str] = None) -> None:
@@ -111,11 +111,12 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
             tiles = [os.path.join(slide_folder, '20.0', t) for t in tiles] # get full paths 
             tiles = [os.path.relpath(t, start=output_folder) for t in tiles] # convert to paths relative to output directory
             for tile in tiles:
-                if luad_tiles: 
+                if luad_tiles is None: 
+                    output_csv[category].write(','.join([tile, mutations]))
+                    output_csv[category].write('\n')
+                else: 
                     if tile in luad_tiles:  # only consider tiles that were predicted as luad
                         output_csv[category].write(','.join([tile, mutations]))
                         output_csv[category].write('\n')
-                else: 
-                    output_csv[category].write(','.join([tile, mutations]))
-                    output_csv[category].write('\n')
+                    
 
