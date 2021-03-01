@@ -1,3 +1,4 @@
+import os 
 import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
@@ -31,9 +32,14 @@ class ROCAnalysis():
         # Slide-based analysis
         slide_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
         self.fpr, self.tpr, self.auc, self.ci = self._run_slide_based_roc_analysis(slide_data)
-        print(self.tile_auc, self.tile_ci, self.auc, self.ci)
+        print('tile_b',self.tile_auc, self.tile_ci)
+        print('slide_b', self.auc, self.ci)
+        print(self.fpr)
 
     def _run_tile_based_roc_analysis(self, predictions: Predictions) -> Tuple[dict,dict]:
+        auc = {}
+        ci = defaultdict(list)
+
         reference = []
         prediction = []
         all_slide_ids = list(set(predictions.predictions['slide_id'].tolist()))
@@ -45,19 +51,20 @@ class ROCAnalysis():
 
         if self.num_classes == 2: 
             prediction = np.reshape(prediction, (1, -1)).squeeze()
-            auc = [skm.roc_auc_score(reference, prediction)]
-            ci = self._get_confidence_interval_by_bootstrapping(reference, prediction)
+            auc[1] = [skm.roc_auc_score(reference, prediction)]
+            ci[1] = self._get_confidence_interval_by_bootstrapping(reference, prediction)
 
         # Multi-class and multi-class multi-label data: Calculate AUC for each class separately      
         else: 
             reference = self._binarize_labels(reference)         
-            auc = skm.roc_auc_score(reference, prediction, average=None)
+            auc_values = skm.roc_auc_score(reference, prediction, average=None)
             for i in range(self.num_classes):
-                ci = self._get_confidence_interval_by_bootstrapping(reference[:, i], prediction[:,i])
+                auc[i] = auc_values[i]
+                ci[i] = self._get_confidence_interval_by_bootstrapping(reference[:, i], prediction[:,i])
 
             if self.num_classes == 3: 
-                auc = skm.roc_auc_score(reference.ravel(), prediction.ravel())
-                ci = self._get_confidence_interval_by_bootstrapping(reference.ravel(), prediction.ravel())
+                auc['micro'] = skm.roc_auc_score(reference.ravel(), prediction.ravel())
+                ci['micro'] = self._get_confidence_interval_by_bootstrapping(reference.ravel(), prediction.ravel())
                 # TODO: macro ci
 
         return auc, ci
@@ -188,7 +195,7 @@ class ROCAnalysis():
         return all_fpr, mean_tpr, auc
 
 
-    def plot(self, output_path) -> None:
+    def plot(self, output_folder) -> None:
         # Plot bisector
         plt.plot(
             [0, 1],
@@ -198,27 +205,32 @@ class ROCAnalysis():
             linestyle='--'
         )
 
-        # Plot ROC curves
         colors = ['orange', 'aqua', 'red', 'yellowgreen', 'yellow', 'magenta', 'royalblue', 'green', 'burlywood', 'grey']
-        for i, key in enumerate(self.fpr):
-            if self.num_classes == 2:
-                label='%s (AUC = %0.3f)' % (key, self.auc[key])
-            else:
-                class_to_str_mapping = EXPERIMENTS[self.experiment]
-                label='%s [avg_prob] (AUC = %0.3f)' % (class_to_str_mapping[key].upper(), self.auc[key])
-            plt.plot(
-                self.fpr[key],
-                self.tpr[key],
-                color=colors[i],
-                linewidth=2,
-                label=label
-            )
 
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False positive rate')
-        plt.ylabel('True positive rate')
-        plt.title('Receiver operating characteristic')
-        plt.legend(loc='lower right')
-        plt.savefig(output_path)
-        plt.close()
+        # Plot ROC curves separately for the two averaging methods if num_classes > 2
+        for i, avg_method in enumerate(self.fpr):
+            #if self.num_classes == 2:
+            #    label='%s (AUC = %0.3f)' % (key, self.auc[key])
+            for idx, key in enumerate(self.fpr[avg_method]): 
+                if key=='macro': # to be removed as soon as missing macro computation is added 
+                    continue 
+                class_to_str_mapping = EXPERIMENTS[self.experiment]
+                class_to_str_mapping['micro'] = 'Micro'
+                class_to_str_mapping['macro'] = 'Macro'
+                label='%s (AUC = %0.3f)' % (class_to_str_mapping[key], self.auc[avg_method][key])
+                plt.plot(
+                    self.fpr[avg_method][key],
+                    self.tpr[avg_method][key],
+                    color=colors[idx],
+                    linewidth=2,
+                    label=label
+                )
+
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.xlabel('False positive rate')
+            plt.ylabel('True positive rate')
+            plt.title('ROC (%s)' % (avg_method))
+            plt.legend(loc='lower right')
+            plt.savefig(os.path.join(output_folder, 'roc_analysis_%s.png' %(avg_method)))
+            plt.close()
