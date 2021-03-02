@@ -207,30 +207,43 @@ class ROCAnalysis():
 
         colors = ['orange', 'aqua', 'red', 'yellowgreen', 'yellow', 'magenta', 'royalblue', 'green', 'burlywood', 'grey']
 
-        # Plot ROC curves separately for the two averaging methods if num_classes > 2
-        for i, avg_method in enumerate(self.fpr):
-            #if self.num_classes == 2:
-            #    label='%s (AUC = %0.3f)' % (key, self.auc[key])
-            for idx, key in enumerate(self.fpr[avg_method]): 
-                if key=='macro': # to be removed as soon as missing macro computation is added 
-                    continue 
-                class_to_str_mapping = EXPERIMENTS[self.experiment]
-                class_to_str_mapping['micro'] = 'Micro'
-                class_to_str_mapping['macro'] = 'Macro'
-                label='%s (AUC = %0.3f)' % (class_to_str_mapping[key], self.auc[avg_method][key])
+        if self.num_classes == 2: 
+            for i, avg_method in enumerate(self.fpr):
+                label='%s (AUC = %0.3f)' % (avg_method, self.auc[avg_method])
                 plt.plot(
-                    self.fpr[avg_method][key],
-                    self.tpr[avg_method][key],
-                    color=colors[idx],
+                    self.fpr[avg_method],
+                    self.tpr[avg_method],
+                    color=colors[i],
                     linewidth=2,
                     label=label
                 )
+                plt.title('ROC')
 
-            plt.xlim([0.0, 1.0])
-            plt.ylim([0.0, 1.05])
-            plt.xlabel('False positive rate')
-            plt.ylabel('True positive rate')
-            plt.title('ROC (%s)' % (avg_method))
-            plt.legend(loc='lower right')
-            plt.savefig(os.path.join(output_folder, 'roc_analysis_%s.png' %(avg_method)))
-            plt.close()
+        # Plot ROC curves separately for the two averaging methods if num_classes > 2
+        else: 
+            for i, avg_method in enumerate(self.fpr):
+                #if self.num_classes == 2:
+                #    label='%s (AUC = %0.3f)' % (key, self.auc[key])
+                for idx, key in enumerate(self.fpr[avg_method]): 
+                    if key=='macro': # to be removed as soon as missing macro computation is added 
+                        continue 
+                    class_to_str_mapping = EXPERIMENTS[self.experiment]
+                    class_to_str_mapping['micro'] = 'Micro'
+                    class_to_str_mapping['macro'] = 'Macro'
+                    label='%s (AUC = %0.3f)' % (class_to_str_mapping[key], self.auc[avg_method][key])
+                    plt.plot(
+                        self.fpr[avg_method][key],
+                        self.tpr[avg_method][key],
+                        color=colors[idx],
+                        linewidth=2,
+                        label=label
+                    )
+                    plt.title('ROC (%s)' % (avg_method))
+
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.legend(loc='lower right')
+        plt.savefig(os.path.join(output_folder, 'roc_analysis_%s.png' %(avg_method)))
+        plt.close()
