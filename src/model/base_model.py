@@ -1,5 +1,6 @@
 import os
 import random
+import json 
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
@@ -68,6 +69,13 @@ class BaseModel:
             filename=os.path.join(output_path, 'train.csv')
         )
 
+        configs_to_store = model.optimizer.get_config()
+        configs_to_store['batch_size'] = batch_size
+        configs_to_store['class_weights'] = class_weights
+        configs_to_store['epochs'] = epochs
+        with open(os.join(output_path, 'training_config.txt'), 'w') as configs_file:
+            json.dump(configs_to_store, configs_file)
+
         self.model.fit(
             training_generator,
             epochs=epochs,
@@ -86,9 +94,11 @@ class BaseModel:
         # remove batch dimension
         return prediction[0, ...]
     
-    def save(self, file_path: str) -> None:
+    def save(self, output_path: str) -> None:
         self.model.save(
-            file_path,
+            os.path.join(output_dir, 'trained_model'),
             overwrite=True,
             include_optimizer=False
         )
+
+
