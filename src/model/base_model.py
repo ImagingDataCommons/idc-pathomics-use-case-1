@@ -94,7 +94,7 @@ class BaseModel:
         # remove batch dimension
         return prediction[0, ...]
     
-    def save(self, output_path: str) -> None:
+    def save(self, output_dir: str) -> None:
         self.model.save(
             os.path.join(output_dir, 'trained_model'),
             overwrite=True,
