@@ -73,7 +73,7 @@ class BaseModel:
         configs_to_store['batch_size'] = batch_size
         configs_to_store['class_weights'] = class_weights
         configs_to_store['epochs'] = epochs
-        with open(os.join(output_path, 'training_config.txt'), 'w') as configs_file:
+        with open(os.path.join(output_path, 'training_config.txt'), 'w') as configs_file:
             json.dump(configs_to_store, configs_file)
 
         self.model.fit(
