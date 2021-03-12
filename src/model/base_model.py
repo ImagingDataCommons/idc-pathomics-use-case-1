@@ -69,7 +69,7 @@ class BaseModel:
             filename=os.path.join(output_path, 'train.csv')
         )
 
-        configs_to_store = model.optimizer.get_config()
+        configs_to_store = self.model.optimizer.get_config()
         configs_to_store['batch_size'] = batch_size
         configs_to_store['class_weights'] = class_weights
         configs_to_store['epochs'] = epochs
