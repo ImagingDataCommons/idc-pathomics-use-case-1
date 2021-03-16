@@ -196,18 +196,10 @@ class ROCAnalysis():
 
 
     def plot(self, output_folder) -> None:
-        # Plot bisector
-        plt.plot(
-            [0, 1],
-            [0, 1],
-            color='black',
-            linewidth=1,
-            linestyle='--'
-        )
-
         colors = ['orange', 'aqua', 'red', 'yellowgreen', 'yellow', 'magenta', 'royalblue', 'green', 'burlywood', 'grey']
 
         if self.num_classes == 2: 
+            self._plot_bisector()
             for i, avg_method in enumerate(self.fpr):
                 label='%s (AUC = %0.3f)' % (avg_method, self.auc[avg_method])
                 plt.plot(
@@ -217,13 +209,14 @@ class ROCAnalysis():
                     linewidth=2,
                     label=label
                 )
-                plt.title('ROC')
+            self._format_plot()
+            plt.savefig(os.path.join(output_folder, 'roc_analysis.png'))
+            plt.close()
 
         # Plot ROC curves separately for the two averaging methods if num_classes > 2
         else: 
             for i, avg_method in enumerate(self.fpr):
-                #if self.num_classes == 2:
-                #    label='%s (AUC = %0.3f)' % (key, self.auc[key])
+                self._plot_bisector()
                 for idx, key in enumerate(self.fpr[avg_method]): 
                     if key=='macro': # to be removed as soon as missing macro computation is added 
                         continue 
@@ -238,12 +231,23 @@ class ROCAnalysis():
                         linewidth=2,
                         label=label
                     )
-                    plt.title('ROC (%s)' % (avg_method))
+                self._format_plot('ROC (%s)' % (avg_method))
+                plt.savefig(os.path.join(output_folder, 'roc_analysis_%s.png' %(avg_method)))
+                plt.close()
 
+    def _plot_bisector(self):
+        plt.plot(
+            [0, 1],
+            [0, 1],
+            color='black',
+            linewidth=1,
+            linestyle='--'
+        )
+
+    def _format_and_save_plot(self, title = 'ROC'):
+        plt.title(title)
         plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
+        plt.ylim([0.0, 1.0])
         plt.xlabel('False positive rate')
         plt.ylabel('True positive rate')
         plt.legend(loc='lower right')
-        plt.savefig(os.path.join(output_folder, 'roc_analysis_%s.png' %(avg_method)))
-        plt.close()
