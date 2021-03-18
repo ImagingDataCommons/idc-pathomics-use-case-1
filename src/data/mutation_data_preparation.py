@@ -45,14 +45,16 @@ def _get_mutations_per_patient(mutations_gt_path: str) -> Dict[str, list]:
 
 def _assign_patients_to_category(patient_meta: str, mutations_per_patient: Dict[str, list]) -> Dict[str, str]:
     # Assign patients to a category (training, validation, test)
-    patient_to_category = dict() 
     patient_meta_luad = patient_meta[patient_meta['cancer_subtype'] == 'luad'] # select luad patients
     patient_meta_luad = patient_meta_luad[patient_meta_luad['patientID'].isin(mutations_per_patient)] # select only patients with known mutations
-    _assign_patients(patient_meta_luad, patient_to_category)
+    patient_to_category = _assign_patients(patient_meta_luad)
+    print(patient_meta_luad)
+    print(patient_to_category)
     return patient_to_category
 
-
 def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, str]) -> Dict[str, str]:
+    patient_to_category = dict() 
+
     tiles_to_consider = 'nr_tiles_cancer'
     nr_all_tiles = patient_meta[tiles_to_consider].sum() 
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
