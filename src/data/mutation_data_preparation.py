@@ -16,7 +16,7 @@ def prepare_mutation_data(source_folder: str, mutations_gt_path: str, tiles_pred
     if not os.path.isfile(patient_meta_path): 
         raise ValueError('File patient_meta.csv not found.')
     else:
-        patient_meta = pd.read_csv(patient_meta_path)
+        patient_meta = pd.read_csv(patient_meta_path).reset_indix(drop=True, inplace=True)
         patient_to_category = _assign_patients_to_category(patient_meta, mutations_per_patient)
 
     slides_meta_path = os.path.join(source_folder, 'slides_meta.csv')
@@ -43,7 +43,7 @@ def _get_mutations_per_patient(mutations_gt_path: str) -> Dict[str, list]:
     return mutations_per_patient
 
 
-def _assign_patients_to_category(patient_meta: str, mutations_per_patient: Dict[str, list]) -> Dict[str, str]:
+def _assign_patients_to_category(patient_meta: pd.DataFrame, mutations_per_patient: Dict[str, list]) -> Dict[str, str]:
     # Assign patients to a category (training, validation, test)
     patient_meta_luad = patient_meta[patient_meta['cancer_subtype'] == 'luad'] # select luad patients
     patient_meta_luad = patient_meta_luad[patient_meta_luad['patientID'].isin(mutations_per_patient)] # select only patients with known mutations
