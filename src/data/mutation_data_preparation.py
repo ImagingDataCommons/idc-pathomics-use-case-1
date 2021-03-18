@@ -17,9 +17,7 @@ def prepare_mutation_data(source_folder: str, mutations_gt_path: str, tiles_pred
         raise ValueError('File patient_meta.csv not found.')
     else:
         patient_meta = pd.read_csv(patient_meta_path)
-        print(patient_meta)
         patient_meta = patient_meta.sample(frac=1, random_state=2) # shuffle rows to permit randomized assignment of patients to categories
-        print(patient_meta)
         patient_to_category = _assign_patients_to_category(patient_meta, mutations_per_patient)
 
     slides_meta_path = os.path.join(source_folder, 'slides_meta.csv')
@@ -88,9 +86,9 @@ def _load_predicted_as_luad(predicted_luad_tiles):
 
 
 def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], mutations_per_patient: Dict[str, list], slides_meta: Dict[str, str], luad_tiles: List[str] = None) -> None:
-    path_train = os.path.join(output_folder, 'csv_train_mutations.csv')
-    path_test = os.path.join(output_folder, 'csv_test_mutations.csv')
-    path_valid = os.path.join(output_folder, 'csv_valid_mutations.csv')
+    path_train = os.path.join(output_folder, 'csv_train_mutations_split2-test.csv')
+    path_test = os.path.join(output_folder, 'csv_test_mutations_split2-test.csv')
+    path_valid = os.path.join(output_folder, 'csv_valid_mutations_split2-test.csv')
 
     with open(path_train, 'w') as csv_train, open(path_test, 'w') as csv_test, open(path_valid, 'w') as csv_valid:
         output_csv = {'train': csv_train, 'test': csv_test, 'valid': csv_valid}
