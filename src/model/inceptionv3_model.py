@@ -35,7 +35,7 @@ class InceptionModel(BaseModel):
             configs['num_outputs'] = num_classes 
             configs['classifier_activation'] = 'sigmoid'
             configs['loss'] = 'binary_crossentropy'
-            configs['metric'] = tf.keras.metrics.Precision() #tf.keras.metrics.AUC(curve='ROC', multi_label=True)
+            configs['metric'] = tf.keras.metrics.AUC(curve='ROC')
         else:
             raise Exception('Number of classes has to be 2, 3 or 10.')
         return configs
