@@ -18,7 +18,7 @@ def prepare_mutation_data(source_folder: str, mutations_gt_path: str, tiles_pred
     else:
         patient_meta = pd.read_csv(patient_meta_path)
         print(patient_meta)
-        patient_meta = patient_meta.sample(frac=1) # shuffle rows to permit randomized assignment of patients to categories
+        patient_meta = patient_meta.sample(frac=1, random_state=2) # shuffle rows to permit randomized assignment of patients to categories
         print(patient_meta)
         patient_to_category = _assign_patients_to_category(patient_meta, mutations_per_patient)
 
