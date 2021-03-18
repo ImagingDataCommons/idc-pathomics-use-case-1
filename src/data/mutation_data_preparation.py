@@ -16,7 +16,7 @@ def prepare_mutation_data(source_folder: str, mutations_gt_path: str, tiles_pred
     if not os.path.isfile(patient_meta_path): 
         raise ValueError('File patient_meta.csv not found.')
     else:
-        patient_meta = pd.read_csv(patient_meta_path).reset_indix(drop=True, inplace=True)
+        patient_meta = pd.read_csv(patient_meta_path).reset_index(drop=True, inplace=True)
         patient_to_category = _assign_patients_to_category(patient_meta, mutations_per_patient)
 
     slides_meta_path = os.path.join(source_folder, 'slides_meta.csv')
