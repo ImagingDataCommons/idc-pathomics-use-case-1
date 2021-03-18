@@ -52,7 +52,7 @@ def _assign_patients_to_category(patient_meta: str, mutations_per_patient: Dict[
     print(patient_to_category)
     return patient_to_category
 
-def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, str]) -> Dict[str, str]:
+def _assign_patients(patient_meta: pd.DataFrame) -> Dict[str, str]:
     patient_to_category = dict() 
 
     tiles_to_consider = 'nr_tiles_cancer'
