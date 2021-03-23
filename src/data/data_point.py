@@ -13,7 +13,8 @@ class DataPoint:
 
     def get_patch(self) -> Image:
         img = load_img(self.patch_path, color_mode='rgb')
-        print(type((img_to_array(img) / 127.5) - 1.0))
+        test = (img_to_array(img) / 127.5) - 1.0
+        print(test.dtype)
         return (img_to_array(img) / 127.5) - 1.0 # scale to [-1, 1], expected input for InceptionV3 network
 
     def get_reference_value(self) -> Union[int, List[int]]:
