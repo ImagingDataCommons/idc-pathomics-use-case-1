@@ -1,5 +1,5 @@
 import tensorflow as tf 
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
 from tensorflow.keras import Model
 from typing import Tuple, Dict, Union
 
@@ -13,9 +13,9 @@ class InceptionModel(BaseModel):
         # Use Inception v3 model by Keras and add top layers manually 
         configs = self._define_configurations(num_classes)
         model = tf.keras.applications.InceptionV3(include_top=True, weights=None, input_shape=input_shape)
-        #model = self._add_top_layers(model, configs['classifier_activation'], configs['num_outputs'])
-        #opt = tf.keras.optimizers.RMSprop(lr=learning_rate, rho=0.9, momentum=0.9, epsilon=1.0)
-        #model.compile(optimizer=opt, loss=configs['loss'], metrics=[configs['metric']]) # note that AUC is on tile-level, not on slide-levela as in the final evaluation
+        model = self._add_top_layers(model, configs['classifier_activation'], configs['num_outputs'])
+        opt = tf.keras.optimizers.RMSprop(lr=learning_rate, rho=0.9, momentum=0.9, epsilon=1.0)
+        model.compile(optimizer=opt, loss=configs['loss'], metrics=[configs['metric']]) # note that AUC is on tile-level, not on slide-levela as in the final evaluation
         return model
 
     def _define_configurations(self, num_classes: int) -> Dict[str, Union[str, int]]:
@@ -43,6 +43,7 @@ class InceptionModel(BaseModel):
     def _add_top_layers(self, model: tf.keras.Model, classifier_activation: str, num_classes: int) -> tf.keras.Model:
         output = model.output
         output = GlobalAveragePooling2D()(output)
+        output = Dropout(0.2)(output)
         output = Dense(num_classes, activation=classifier_activation, name='predictions')(output)
         return Model(model.input, output)
 
