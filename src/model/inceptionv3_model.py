@@ -43,7 +43,7 @@ class InceptionModel(BaseModel):
     def _add_top_layers(self, model: tf.keras.Model, classifier_activation: str, num_classes: int) -> tf.keras.Model:
         output = model.output
         output = GlobalAveragePooling2D()(output)
-        output = Dropout(0.2)(output)
+        output = Dropout(0.5)(output)
         output = Dense(num_classes, activation=classifier_activation, name='predictions')(output)
         return Model(model.input, output)
 
