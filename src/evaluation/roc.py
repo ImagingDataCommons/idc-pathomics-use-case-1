@@ -119,11 +119,11 @@ class ROCAnalysis():
 
     def _run_slide_based_roc_analysis(self, slide_data: pd.DataFrame) -> Tuple[dict, dict, dict, dict]:
         
-        # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC, only for averaging method 'average_probability'
+        # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC
         if self.num_classes > 2: 
             fpr, tpr, auc, ci = self._generate_multiclass_roc_curves(slide_data)
 
-        # Two-class ROC curve, consider both averaging methods, i.e. average_probability and percentage_positive
+        # Two-class ROC curve
         else: 
             fpr, tpr, auc, ci = {}, {}, {}, {} 
             reference = slide_data['reference_value'].tolist()
@@ -209,7 +209,7 @@ class ROCAnalysis():
                     linewidth=2,
                     label=label
                 )
-            self._format_plot()
+            self._format_and_save_plot()
             plt.savefig(os.path.join(output_folder, 'roc_analysis.png'))
             plt.close()
 
@@ -231,7 +231,7 @@ class ROCAnalysis():
                         linewidth=2,
                         label=label
                     )
-                self._format_plot('ROC (%s)' % (avg_method))
+                self._format_and_save_plot('ROC (%s)' % (avg_method))
                 plt.savefig(os.path.join(output_folder, 'roc_analysis_%s.png' %(avg_method)))
                 plt.close()
 
