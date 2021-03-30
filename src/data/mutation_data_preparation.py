@@ -56,7 +56,7 @@ def _assign_patients_to_category(patient_meta: pd.DataFrame, mutations_per_patie
 def _assign_patients(patient_meta: pd.DataFrame) -> Dict[str, str]:
     patient_to_category = dict() 
 
-    tiles_to_consider = 'nr_tiles_cancer'
+    tiles_to_consider = 'nr_tiles_cancer' # >= than number of LUAD tiles finally used 
     nr_all_tiles = patient_meta[tiles_to_consider].sum() 
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
     nr_tiles_to_valid = int(0.15 * nr_all_tiles)
