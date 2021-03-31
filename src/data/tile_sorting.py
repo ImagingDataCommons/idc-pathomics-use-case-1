@@ -48,7 +48,7 @@ def run_tile_sorting(source_folder: str, json_file: str, output_folder: str, sor
     patients_with_only_healthy_slide = set()
     for slide_folder in slides_meta:
         if slides_meta[slide_folder] == 'normal':
-            patientID = re.findall("TCGA-[0-9]{2}-[0-9]{4}", slide_folder)[0]
+            patientID = re.findall(r'TCGA-[0-9]{2}-[0-9]{4}', slide_folder)[0]
             patients_with_only_healthy_slide.add(patientID)
     print(patients_with_only_healthy_slide)
         
