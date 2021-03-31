@@ -45,12 +45,16 @@ def run_tile_sorting(source_folder: str, json_file: str, output_folder: str, sor
     #patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data)
     slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data)
     # how many patients do only have healthy slides? 
-    patients_with_only_healthy_slide = set()
+    patients_with_healthy_slide = set()
+    patients_with_cancer_slide = set()
     for slide_folder in slides_meta:
         if slides_meta[slide_folder] == 'normal':
             patientID = re.findall(r'TCGA-[0-9,a-z,A-Z]{2}-[0-9,a-z,A-Z]{4}', slide_folder)[0]
-            patients_with_only_healthy_slide.add(patientID)
-    for element in patients_with_only_healthy_slide:
+            patients_with_healthy_slide.add(patientID)
+        else:
+            patientID = re.findall(r'TCGA-[0-9,a-z,A-Z]{2}-[0-9,a-z,A-Z]{4}', slide_folder)[0]
+            patients_with_cancer_slide.add(patientID)
+    for element in patients_with_healthy_slide.difference(patients_with_cancer_slide):
         print(element)
         
     #patient_to_category = _assign_patients_to_category(patient_meta, classes) 
