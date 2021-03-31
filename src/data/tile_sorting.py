@@ -51,7 +51,8 @@ def run_tile_sorting(source_folder: str, json_file: str, output_folder: str, sor
             print(slide_folder)
             patientID = re.findall(r'TCGA-[0-9,a-z,A-Z]{2}-[0-9,a-z,A-Z]{4}', slide_folder)[0]
             patients_with_only_healthy_slide.add(patientID)
-    print(patients_with_only_healthy_slide)
+    for element in patients_with_only_healthy_slide:
+        print(element)
         
     #patient_to_category = _assign_patients_to_category(patient_meta, classes) 
     #_write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option)
