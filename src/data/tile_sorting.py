@@ -1,4 +1,5 @@
 import os 
+import re 
 from glob import glob
 import json
 from collections import defaultdict
@@ -39,12 +40,20 @@ def run_tile_sorting(source_folder: str, json_file: str, output_folder: str, sor
     
     classes = _get_classes(sorting_option)
     
-    patient_meta_path = os.path.join(output_folder, 'patient_meta.csv')
+    #patient_meta_path = os.path.join(output_folder, 'patient_meta.csv')
     slides_meta_path = os.path.join(output_folder, 'slides_meta.csv')
-    patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data)
+    #patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data)
     slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data)
-    patient_to_category = _assign_patients_to_category(patient_meta, classes) 
-    _write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option)
+    # how many patients do only have healthy slides? 
+    patients_with_only_healthy_slide = set()
+    for slide_folder in slides_meta:
+        if slides_meta[slides_folder] == 'normal':
+            patientID = re.findall("TCGA-[0-9]{2}-[0-9]{4}", slide_folder)[0]
+            patients_with_only_healthy_slide.add(patientID)
+    print(patients_with_only_healthy_slide)
+        
+    #patient_to_category = _assign_patients_to_category(patient_meta, classes) 
+    #_write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option)
 
 
 def _get_classes(sorting_option: str) -> Dict[str, int]:
