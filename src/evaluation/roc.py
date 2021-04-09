@@ -32,9 +32,6 @@ class ROCAnalysis():
         # Slide-based analysis
         slide_data = self._prepare_data_for_slide_based_roc_analysis(predictions)
         self.fpr, self.tpr, self.auc, self.ci = self._run_slide_based_roc_analysis(slide_data)
-        print('tile_b',self.tile_auc, self.tile_ci)
-        print('slide_b', self.auc, self.ci)
-        print(self.fpr)
 
     def _run_tile_based_roc_analysis(self, predictions: Predictions) -> Tuple[dict,dict]:
         auc = {}
@@ -254,5 +251,5 @@ class ROCAnalysis():
 
 
     def print_and_save_tabluar_results(self):
-        # TODO 
-        pass
+        print('tile_b',self.tile_auc, self.tile_ci)
+        print('slide_b', self.auc, self.ci) 
