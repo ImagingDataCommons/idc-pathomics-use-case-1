@@ -251,3 +251,8 @@ class ROCAnalysis():
         plt.xlabel('False positive rate')
         plt.ylabel('True positive rate')
         plt.legend(loc='lower right')
+
+
+    def print_and_save_tabluar_results(self):
+        # TODO 
+        pass
