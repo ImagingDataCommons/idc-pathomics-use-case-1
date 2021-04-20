@@ -250,22 +250,16 @@ class ROCAnalysis():
         plt.legend(loc='lower right')
 
 
-    def print_and_save_tabluar_results(self):
+    def print_and_save_tabluar_results(self, output_folder):
         results_dict = {('tile-based', 'auc'): self.tile_auc, 
                         ('tile-based', 'confidence'): self.tile_ci, 
                         ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
                         ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
                         ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
                         ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
-        print(pd.DataFrame(results_dict, dtype=object))
-
-        print(self.tile_auc, self.tile_ci)
-        print(self.auc, self.ci)
-        tile_based_results = pd.DataFrame.from_dict(self.tile_auc, orient='index')
-        tile_based_results2 = pd.DataFrame.from_dict(self.tile_ci, orient='index')
-        slide_based_results =  pd.DataFrame.from_dict(self.auc, orient='index')
-        slide_based_results2 =  pd.DataFrame.from_dict(self.ci, orient='index')
-        print(tile_based_results)
-        print(tile_based_results2)
-        print(slide_based_results)
-        print(slide_based_results2)
+        
+        results = pd.DataFrame(results_dict, dtype=object)
+        results.to_html()
+        text_file = open(os.path.join(output_folder, 'results_table.html'), 'w')
+        text_file.write(html)
+        text_file.close()
