@@ -254,9 +254,9 @@ class ROCAnalysis():
         results_dict = {('tile-based', 'auc'): self.tile_auc, 
                         ('tile-based', 'confidence'): self.tile_ci, 
                         ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
-                        ('slide-based', 'average probability', 'confidence'), self.ci['average_probability']
+                        ('slide-based', 'average probability', 'confidence'): self.ci['average_probability']
                         ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
-                        ('slide-based', 'percentage positive', 'confidence'), self.ci['percentage_positive']}
+                        ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
         print(pd.DataFrame(results_dict, dtype=object))
 
         print(self.tile_auc, self.tile_ci)
