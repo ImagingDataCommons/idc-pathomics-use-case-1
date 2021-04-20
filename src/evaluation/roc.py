@@ -251,6 +251,9 @@ class ROCAnalysis():
 
 
     def print_and_save_tabluar_results(self):
+        results_dict = {('tile-based', 'auc'): {0: 1, 2: 4}}
+        print(pd.DataFrame(results_dict))
+
         print(self.tile_auc, self.tile_ci)
         print(self.auc, self.ci)
         tile_based_results = pd.DataFrame.from_dict(self.tile_auc, orient='index')
