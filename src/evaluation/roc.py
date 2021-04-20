@@ -252,6 +252,8 @@ class ROCAnalysis():
 
     def print_and_save_tabluar_results(self, output_folder):
         class_to_str_mapping = EXPERIMENTS[self.experiment]
+        class_to_str_mapping['micro'] = 'Micro'
+        class_to_str_mapping['macro'] = 'Macro'
         results_dict = {('tile-based', ' ', 'auc'): self.tile_auc, 
                         ('tile-based', ' ', 'confidence'): self.tile_ci, 
                         ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
