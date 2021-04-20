@@ -259,7 +259,7 @@ class ROCAnalysis():
                         ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
         
         results = pd.DataFrame(results_dict, dtype=object)
-        results.to_html()
+        html = results.to_html()
         text_file = open(os.path.join(output_folder, 'results_table.html'), 'w')
         text_file.write(html)
         text_file.close()
