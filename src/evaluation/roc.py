@@ -261,6 +261,7 @@ class ROCAnalysis():
                         ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
                         ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
                         ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
+        print(results_dict)
         results = pd.DataFrame(results_dict, dtype=object)
         results.rename(index=class_to_str_mapping, inplace=True)
         html = results.to_html()
