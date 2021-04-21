@@ -48,7 +48,7 @@ class ROCAnalysis():
 
         if self.num_classes == 2: 
             prediction = np.reshape(prediction, (1, -1)).squeeze()
-            auc[1] = [skm.roc_auc_score(reference, prediction)]
+            auc[1] = skm.roc_auc_score(reference, prediction)
             ci[1] = self._get_confidence_interval_by_bootstrapping(reference, prediction)
 
         # Multi-class and multi-class multi-label data: Calculate AUC for each class separately      
@@ -255,12 +255,12 @@ class ROCAnalysis():
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'
         if self.num_classes == 2: 
-            results_dict = {('tile-based', ' ', 'auc'): self.tile_auc[1][0], 
-                            ('tile-based', ' ', 'confidence'): self.tile_ci[1], 
-                            ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
-                            ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
-                            ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
-                            ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
+            results_dict = {('tile-based', ' ', 'auc'): self.tile_auc, 
+                            ('tile-based', ' ', 'confidence'): self.tile_ci, 
+                            ('slide-based', 'average probability', 'auc'): {1: self.auc['average_probability']}, 
+                            ('slide-based', 'average probability', 'confidence'): {1: self.ci['average_probability']},
+                            ('slide-based', 'percentage positive', 'auc'): {1: self.auc['percentage_positive']}, 
+                            ('slide-based', 'percentage positive', 'confidence'): {1: self.ci['percentage_positive']}}
             results = pd.DataFrame.from_dict(results_dict, dtype=object)
         else: 
             results_dict = {('tile-based', ' ', 'auc'): self.tile_auc, 
