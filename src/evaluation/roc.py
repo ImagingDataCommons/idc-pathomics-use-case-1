@@ -262,6 +262,7 @@ class ROCAnalysis():
                             ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
                             ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
                             ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
+            results = pd.DataFrame.from_dict(results_dict, dtype=object)
         else: 
             results_dict = {('tile-based', ' ', 'auc'): self.tile_auc, 
                             ('tile-based', ' ', 'confidence'): self.tile_ci, 
@@ -269,10 +270,8 @@ class ROCAnalysis():
                             ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
                             ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
                             ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
-        print(results_dict)
-        results = pd.DataFrame(results_dict, dtype=object)
-        print(results)
-        results.rename(index=class_to_str_mapping, inplace=True)
+            results = pd.DataFrame(results_dict, dtype=object)
+            results.rename(index=class_to_str_mapping, inplace=True)
         print(results)
         html = results.to_html()
         text_file = open(os.path.join(output_folder, 'results_table.html'), 'w')
