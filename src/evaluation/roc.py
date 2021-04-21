@@ -254,6 +254,7 @@ class ROCAnalysis():
         class_to_str_mapping = EXPERIMENTS[self.experiment]
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'
+        print(self.tile_auc, self.tile_ci, self.auc, self.ci)
         results_dict = {('tile-based', ' ', 'auc'): self.tile_auc, 
                         ('tile-based', ' ', 'confidence'): self.tile_ci, 
                         ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
