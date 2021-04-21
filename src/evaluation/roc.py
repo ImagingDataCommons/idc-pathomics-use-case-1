@@ -255,12 +255,20 @@ class ROCAnalysis():
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'
         print(self.tile_auc, self.tile_ci, self.auc, self.ci)
-        results_dict = {('tile-based', ' ', 'auc'): self.tile_auc, 
-                        ('tile-based', ' ', 'confidence'): self.tile_ci, 
-                        ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
-                        ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
-                        ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
-                        ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
+        if self.num_classes == 2: 
+            results_dict = {('tile-based', ' ', 'auc'): self.tile_auc[1][0], 
+                            ('tile-based', ' ', 'confidence'): self.tile_ci[1], 
+                            ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
+                            ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
+                            ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
+                            ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
+        else: 
+            results_dict = {('tile-based', ' ', 'auc'): self.tile_auc, 
+                            ('tile-based', ' ', 'confidence'): self.tile_ci, 
+                            ('slide-based', 'average probability', 'auc'): self.auc['average_probability'], 
+                            ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
+                            ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
+                            ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
         print(results_dict)
         results = pd.DataFrame(results_dict, dtype=object)
         results.rename(index=class_to_str_mapping, inplace=True)
