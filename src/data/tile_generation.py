@@ -44,7 +44,7 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str) -> None:
     level = _get_required_level(slide, dz)
     if level != -1: 
 
-        tiledir = os.path.join('%s_files' %(output_path), str(this_magnification)) 
+        tiledir = os.path.join('%s_files' %(output_path), str(5.0)) 
         if not os.path.exists(tiledir):
             os.makedirs(tiledir)
         
@@ -65,10 +65,12 @@ def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator) -> in
     level = -1
     available_magnifications = _get_available_magnifications(slide)
     print(available_magnifications)
-    for level in range(dz.level_count-1, -1, -1):
+    for current_level in range(dz.level_count-1, -1, -1):
         this_magnification = available_magnifications[0]/pow(2, dz.level_count - (level+1)) # compute current magnification depending on the recent level  
+        print(round(this_magnification))
         if round(this_magnification) != 5.0: # our desired magnification is 20x 
             continue
+        level = current_level
     return level 
 
 
