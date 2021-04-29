@@ -60,7 +60,7 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str) -> None:
                         tile.save(tilename, quality=90)
 
 
-def _get_required_level(slide: OpenSlide, dz: DeepZoomGenerator) -> int:
+def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator) -> int:
      
     level = -1
     available_magnifications = _get_available_magnifications(slide)
@@ -71,7 +71,7 @@ def _get_required_level(slide: OpenSlide, dz: DeepZoomGenerator) -> int:
     return level 
 
 
-def _get_available_magnifications(slide: OpenSlide) -> Tuple[float]:
+def _get_available_magnifications(slide: openslide.OpenSlide) -> Tuple[float]:
 
     factors = slide.level_downsamples
     try: 
