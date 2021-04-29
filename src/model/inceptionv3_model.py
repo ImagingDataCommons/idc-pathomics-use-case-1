@@ -12,8 +12,8 @@ class InceptionModel(BaseModel):
 
         # Use Inception v3 model by Keras and add top layers manually 
         configs = self._define_configurations(num_classes)
-        model = tf.keras.applications.InceptionV3(include_top=True, weights=None, input_shape=input_shape)
-        #model = self._add_top_layers(model, configs['classifier_activation'], configs['num_outputs'])
+        model = tf.keras.applications.InceptionV3(include_top=False, weights=None, input_shape=input_shape)
+        model = self._add_top_layers(model, configs['classifier_activation'], configs['num_outputs'])
         opt = tf.keras.optimizers.RMSprop(lr=learning_rate, rho=0.9, momentum=0.9, epsilon=1.0)
         model.compile(optimizer=opt, loss=configs['loss'], metrics=[configs['metric']]) # note that AUC is on tile-level, not on slide-levela as in the final evaluation
         return model
