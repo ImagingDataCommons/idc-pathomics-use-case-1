@@ -67,7 +67,7 @@ def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator) -> in
     print(available_magnifications)
     for level in range(dz.level_count-1, -1, -1):
         this_magnification = available_magnifications[0]/pow(2, dz.level_count - (level+1)) # compute current magnification depending on the recent level  
-        if this_magnification != 5.0: # our desired magnification is 20x 
+        if round(this_magnification) != 5.0: # our desired magnification is 20x 
             continue
     return level 
 
