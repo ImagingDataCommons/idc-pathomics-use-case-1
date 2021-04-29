@@ -8,7 +8,7 @@ from PIL.Image import Image
 from typing import Tuple
 
 
-def generate_tiles(slidespath: str, output_folder: str) -> None:
+def generate_tiles(slidespath: str, output_folder: str, desired_magnification: float = 20.0) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
@@ -23,10 +23,10 @@ def generate_tiles(slidespath: str, output_folder: str) -> None:
     print('Reading input data from %s' %(slidespath))
     slides = glob(slidespath + '/*/*svs', recursive=True) 
     for slidepath in slides:
-        _generate_tiles_for_slide(slidepath, output_folder)
+        _generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
 
-def _generate_tiles_for_slide(slidepath: str, output_folder: str) -> None:
+def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnification: float) -> None:
 
     # Check if slide is already tiled
     slide_name = os.path.splitext(os.path.basename(slidepath))[0]
@@ -41,10 +41,10 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str) -> None:
     dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
     
     # Tiling 
-    level = _get_required_level(slide, dz)
+    level = _get_required_level(slide, dz, desired_magnification)
     if level != -1: 
 
-        tiledir = os.path.join('%s_files' %(output_path), str(5.0)) 
+        tiledir = os.path.join('%s_files' %(output_path), str(desired_magnification)) 
         if not os.path.exists(tiledir):
             os.makedirs(tiledir)
         
@@ -60,7 +60,7 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str) -> None:
                         tile.save(tilename, quality=90)
 
 
-def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator) -> int:
+def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator, desired_magnification: float) -> int:
      
     level = -1
     available_magnifications = _get_available_magnifications(slide)
@@ -68,7 +68,7 @@ def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator) -> in
     for current_level in range(dz.level_count-1, -1, -1):
         this_magnification = available_magnifications[0]/pow(2, dz.level_count - (level+1)) # compute current magnification depending on the recent level  
         print(round(this_magnification))
-        if round(this_magnification) != 5.0: # our desired magnification is 20x 
+        if round(this_magnification) != desired_magnification:  
             continue
         level = current_level
     return level 
