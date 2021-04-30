@@ -21,7 +21,6 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
     """
 
     print('Reading input data from %s' %(slidespath))
-    print(slidespath, output_folder)
     slides = glob(slidespath + '/*/*svs', recursive=True) 
     for slidepath in slides[:3]:
         _generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
@@ -65,15 +64,11 @@ def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator, desir
      
     level = -1
     available_magnifications = _get_available_magnifications(slide)
-    print(range(dz.level_count-1, -1, -1))
     for curr_level in range(dz.level_count-1, -1, -1):
         this_magnification = available_magnifications[0]/pow(2, dz.level_count - (curr_level+1)) # compute current magnification depending on the recent level  
-        print(this_magnification, round(this_magnification))
         if this_magnification != desired_magnification: 
-            print('this is it', curr_level) 
             continue
         level = curr_level
-    print(level)
     return level 
 
 
