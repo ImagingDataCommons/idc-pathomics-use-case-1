@@ -22,7 +22,7 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
 
     print('Reading input data from %s' %(slidespath))
     slides = glob(slidespath + '/*/*svs', recursive=True) 
-    for slidepath in slides[:3]:
+    for slidepath in slides:
         _generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
 
