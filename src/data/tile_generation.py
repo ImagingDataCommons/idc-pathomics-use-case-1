@@ -22,7 +22,7 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
 
     print('Reading input data from %s' %(slidespath))
     slides = glob(slidespath + '/*/*svs', recursive=True) 
-    for slidepath in slides:
+    for slidepath in slides[:3]:
         _generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
 
@@ -31,7 +31,8 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
     # Check if slide is already tiled
     slide_name = os.path.splitext(os.path.basename(slidepath))[0]
     output_path = os.path.join(output_folder, slide_name) 
-    if os.path.exists(os.path.join('%s_files' %(output_path))):
+    tiledir = os.path.join('%s_files' %(output_path), str(desired_magnification)) 
+    if os.path.exists(tiledir):
         print("Slide %s already tiled" % slide_name)
         return 
     
@@ -44,10 +45,7 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
     level = _get_required_level(slide, dz, desired_magnification)
     if level != -1: 
 
-        tiledir = os.path.join('%s_files' %(output_path), str(desired_magnification)) 
-        if not os.path.exists(tiledir):
-            os.makedirs(tiledir)
-        
+        os.makedirs(tiledir) 
         cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
         for row in range(rows):
             for col in range(cols): 
