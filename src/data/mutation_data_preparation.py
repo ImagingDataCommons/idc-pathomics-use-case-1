@@ -7,6 +7,7 @@ from typing import List, Dict
 
 MUTATION_LABELS = {'stk11':0, 'egfr':1, 'setbp1':2, 'tp53':3, 'fat1':4, 'kras':5, 'keap1':6, 'lrp1b':7, 'fat4':8, 'nf1':9}
 
+
 def prepare_mutation_data(source_folder: str, mutations_gt_path: str, tiles_predicted_as_luad: str = None) -> None:
     slide_folders = glob(os.path.join(source_folder, 'tiles', '*_files'))
 
@@ -123,3 +124,23 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
                         output_csv[category].write('\n')
                     
 
+def prepare_mutation_data_as_binary_problem(path_multilabel_mutation_file: str, mutation: str) -> None: 
+    mutation_label = MUTATION_LABELS[mutation]
+    path_binary_mutation_file = _create_output_file_path(path_multilabel_mutation_file, mutation)
+
+    with open(path_multilabel_mutation_file, 'w') as multilabel, open(path_binary_mutation_file, 'w') as binary:
+        binary.write('path,reference_value\n') # Add header to output
+        next(multilabel) # Skip header in input 
+        for line in multilabel:
+            tile = line.split(',')[0]
+            labels = line.split(',')[1]
+            if mutation_label in labels: 
+                binary.write(','.join([tile, str(1)])
+            else: 
+                binary.write(','.join([tile, str(0)]))
+
+
+def _create_output_file_path(input_path: str, mutation: str) -> str: 
+    dirname = os.path.dirname(input_path)
+    modified_basename = os.path.basename(input_path).split('.')[0] + '_' + str(mutation) + '.csv'
+    return os.path.join(dirname, modified_basename)
