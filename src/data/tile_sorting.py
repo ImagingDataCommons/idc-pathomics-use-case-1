@@ -95,12 +95,13 @@ def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[
 def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any]) -> Dict[str, str]:
     slides_meta = defaultdict(lambda: None)
     for slide_folder in slide_folders:
+        slide_id = slide_folder.split('/')[-1]
         metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data)
         if _is_cancer_slide(metadata):
             slide_class = _extract_patient_cancer_type(metadata) 
         else: 
             slide_class = 'normal'
-        slides_meta[slide_folder] = slide_class
+        slides_meta[slide_id] = slide_class
     return slides_meta
 
 
@@ -184,7 +185,8 @@ def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category
             
 
 def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int]) -> None:
-    patient = slide_folder.split('/')[-1][:12]
+    slide_id = slide_folder.split('/')[-1]
+    patient = slide_id[:12]
     if patient in patient_to_category: 
         category = patient_to_category[patient]
         slide_class = slides_meta[slide_folder]
