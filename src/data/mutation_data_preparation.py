@@ -128,7 +128,7 @@ def prepare_mutation_data_as_binary_problem(path_multilabel_mutation_file: str, 
     mutation_label = MUTATION_LABELS[mutation]
     path_binary_mutation_file = _create_output_file_path(path_multilabel_mutation_file, mutation)
 
-    with open(path_multilabel_mutation_file, 'w') as multilabel, open(path_binary_mutation_file, 'w') as binary:
+    with open(path_multilabel_mutation_file, 'r') as multilabel, open(path_binary_mutation_file, 'w') as binary:
         binary.write('path,reference_value\n') # Add header to output
         for line in multilabel:
             if not line.startswith('path'):
