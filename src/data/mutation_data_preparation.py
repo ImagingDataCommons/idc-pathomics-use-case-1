@@ -134,7 +134,7 @@ def prepare_mutation_data_as_binary_problem(path_multilabel_mutation_file: str, 
             if not line.startswith('path'):
                 tile = line.split(',')[0]
                 labels = line.split(',')[1]
-                if mutation_label in labels: 
+                if str(mutation_label) in labels: 
                     binary.write(','.join([tile, str(1)]))
                 else: 
                     binary.write(','.join([tile, str(0)]))
