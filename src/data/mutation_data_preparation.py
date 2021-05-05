@@ -136,8 +136,10 @@ def prepare_mutation_data_as_binary_problem(path_multilabel_mutation_file: str, 
                 labels = line.split(',')[1]
                 if str(mutation_label) in labels: 
                     binary.write(','.join([tile, str(1)]))
+                    binary.write('\n')
                 else: 
                     binary.write(','.join([tile, str(0)]))
+                    binary.write('\n')
 
 
 def _create_output_file_path(input_path: str, mutation: str) -> str: 
