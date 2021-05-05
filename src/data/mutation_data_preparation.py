@@ -130,14 +130,14 @@ def prepare_mutation_data_as_binary_problem(path_multilabel_mutation_file: str, 
 
     with open(path_multilabel_mutation_file, 'w') as multilabel, open(path_binary_mutation_file, 'w') as binary:
         binary.write('path,reference_value\n') # Add header to output
-        next(multilabel) # Skip header in input 
         for line in multilabel:
-            tile = line.split(',')[0]
-            labels = line.split(',')[1]
-            if mutation_label in labels: 
-                binary.write(','.join([tile, str(1)]))
-            else: 
-                binary.write(','.join([tile, str(0)]))
+            if not line.startswith('path'):
+                tile = line.split(',')[0]
+                labels = line.split(',')[1]
+                if mutation_label in labels: 
+                    binary.write(','.join([tile, str(1)]))
+                else: 
+                    binary.write(','.join([tile, str(0)]))
 
 
 def _create_output_file_path(input_path: str, mutation: str) -> str: 
