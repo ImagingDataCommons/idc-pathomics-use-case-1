@@ -107,7 +107,7 @@ def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnifi
 def _get_info_about_slide(slide_folder: str, json_data: Dict[Any, Any], magnification: float) -> Tuple[Dict[Any,Any], int, str]:
     slide_id = slide_folder.split('/')[-1].replace('_files', '')
     metadata = json_data[slide_id] 
-    nr_tiles = len([x for x in os.listdir(os.path.join(slide_folder, '_files', str(magnification))) if x.endswith('.jpeg')])
+    nr_tiles = len([x for x in os.listdir(os.path.join(slide_folder, str(magnification))) if x.endswith('.jpeg')])
     patientID = slide_id[:12]
     return metadata, nr_tiles, patientID
 
