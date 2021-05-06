@@ -69,7 +69,8 @@ def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any], magnif
     patient_meta = defaultdict(lambda: [0, 0, None]) # store nr_tiles_total, nr_tiles_cancer and cancer type per patient
 
     for slide_folder in slide_folders:
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
+        slide_id = slide_folder.split('/')[-1].replace('_files', '')
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_id, json_data, magnification)
         if patientID not in patient_meta:
             patient_cancer_type = _extract_patient_cancer_type(metadata) 
             patient_meta[patientID][2] = patient_cancer_type
