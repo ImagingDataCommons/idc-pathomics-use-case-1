@@ -10,7 +10,7 @@ from typing import List, Tuple, Dict, Any
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lusc':1}, 'luad_lusc': {'luad':0, 'lusc':1}, 'norm_luad_lusc': {'normal':0, 'luad':1, 'lusc':2}}
 
 
-def sort_tiles(source_folder: str, json_file: str, output_folder: str, sorting_option: str) -> None:
+def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_option: str) -> None:
     """ 
     Sort the tiles by one of the following three options while balancing classes to be distributed equally to training
     test and validation set. 
@@ -20,7 +20,7 @@ def sort_tiles(source_folder: str, json_file: str, output_folder: str, sorting_o
         > 'normal_luad_lusc': 'normal' vs. 'LUAD' vs. 'LUSC'
 
     Args:
-        source_folder (str): absolute path to the folder containing all tiles (in separate subfolders per slide)
+        tiles_folder (str): absolute path to the folder containing all tiles (in separate subfolders per slide)
         json_file (str): absolute path to JSON file containing the metadata (information about classes etc.)
         output_folder (str): absolute path to the output folder where to store the csv files
         sorting_option (int): one of the three above-mentioned sorting options specified by the respective identifier
@@ -29,7 +29,7 @@ def sort_tiles(source_folder: str, json_file: str, output_folder: str, sorting_o
         None
     """
 
-    slide_folders = glob(os.path.join(source_folder, '*_files'))
+    slide_folders = glob(os.path.join(tiles_folder, '*_files'))
 
     if not '.json' in json_file:
         raise ValueError('Please provide a metadata file in JSON format.')
