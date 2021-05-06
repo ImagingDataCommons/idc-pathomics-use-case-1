@@ -10,7 +10,7 @@ from typing import List, Tuple, Dict, Any
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lusc':1}, 'luad_lusc': {'luad':0, 'lusc':1}, 'norm_luad_lusc': {'normal':0, 'luad':1, 'lusc':2}}
 
 
-def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_option: str) -> None:
+def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_option: str, magnification: float = 20.0) -> None:
     """ 
     Sort the tiles by one of the following three options while balancing classes to be distributed equally to training
     test and validation set. 
@@ -40,12 +40,12 @@ def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_op
     
     classes = _get_classes(sorting_option)
     
-    patient_meta_path = os.path.join(output_folder, 'patient_meta.csv')
-    slides_meta_path = os.path.join(output_folder, 'slides_meta.csv')
-    patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data)
-    slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data)     
+    patient_meta_path = os.path.join(output_folder, 'patient_meta_' + str(magnification) + '.csv')
+    slides_meta_path = os.path.join(output_folder, 'slides_meta_' + str(magnification) + '.csv')
+    patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data, magnification)
+    slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data, magnification)     
     patient_to_category = _assign_patients_to_category(patient_meta, classes) 
-    _write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option)
+    _write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option, magnification)
 
 
 def _get_classes(sorting_option: str) -> Dict[str, int]:
@@ -55,21 +55,21 @@ def _get_classes(sorting_option: str) -> Dict[str, int]:
         raise ValueError('Please specify a valid sorting option.')
 
 
-def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dict[Any, Any]) -> pd.DataFrame: 
+def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> pd.DataFrame: 
     # load or generate internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
     if os.path.isfile(patient_meta_path): 
         patient_meta = pd.read_csv(patient_meta_path)
     else: 
-        patient_meta = _generate_patient_meta(slide_folders, json_data)
+        patient_meta = _generate_patient_meta(slide_folders, json_data, magnification)
         patient_meta.to_csv(patient_meta_path, index=False)
     return patient_meta
 
 
-def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any]) -> pd.DataFrame:
+def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> pd.DataFrame:
     patient_meta = defaultdict(lambda: [0, 0, None]) # store nr_tiles_total, nr_tiles_cancer and cancer type per patient
 
     for slide_folder in slide_folders:
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data)
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
         if patientID not in patient_meta:
             patient_cancer_type = _extract_patient_cancer_type(metadata) 
             patient_meta[patientID][2] = patient_cancer_type
@@ -81,22 +81,22 @@ def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any]) -> pd.
     return _convert_to_dataframe(patient_meta)
 
 
-def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[Any, Any]) -> Dict[str, str]:
+def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> Dict[str, str]:
     if os.path.isfile(slides_meta_path): 
         with open(slides_meta_path, 'r') as slides_meta_file: 
             slides_meta = json.loads(slides_meta_file.read())
     else: 
-        slides_meta = _generate_slides_meta(slide_folders, json_data)
+        slides_meta = _generate_slides_meta(slide_folders, json_data, magnification)
         with open(slides_meta_path, 'w') as slides_meta_file:
             json.dump(slides_meta, slides_meta_file)
     return slides_meta
 
 
-def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any]) -> Dict[str, str]:
+def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> Dict[str, str]:
     slides_meta = defaultdict(lambda: None)
     for slide_folder in slide_folders:
         slide_id = slide_folder.split('/')[-1]
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data)
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
         if _is_cancer_slide(metadata):
             slide_class = _extract_patient_cancer_type(metadata) 
         else: 
@@ -105,10 +105,10 @@ def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any]) -> Dict
     return slides_meta
 
 
-def _get_info_about_slide(folder: str, json_data: Dict[Any, Any]) -> Tuple[Dict[Any,Any], int, str]:
+def _get_info_about_slide(folder: str, json_data: Dict[Any, Any], magnification: float) -> Tuple[Dict[Any,Any], int, str]:
     slide_name = os.path.basename(folder).replace('_files', '')
     metadata = json_data[slide_name] 
-    nr_tiles = len([x for x in os.listdir(os.path.join(folder, '20.0')) if x.endswith('.jpeg')])
+    nr_tiles = len([x for x in os.listdir(os.path.join(folder, str(magnification))) if x.endswith('.jpeg')])
     patientID = slide_name[:12]
     return metadata, nr_tiles, patientID
 
@@ -168,10 +168,10 @@ def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, 
     return patient_to_category
 
 
-def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: str) -> None:
-    path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '_5x.csv')
-    path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '_5x.csv')
-    path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '_5x.csv')
+def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: , magnification: float) -> None:
+    path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '_' + str(magnification) + '.csv')
+    path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '_' + str(magnification) + '.csv')
+    path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '_' + str(magnification) + '.csv')
 
     with open(path_train, 'w') as csv_train, open(path_test, 'w') as csv_test, open(path_valid, 'w') as csv_valid:
         output_csv = {'train': csv_train, 'test': csv_test, 'valid': csv_valid}
@@ -181,10 +181,10 @@ def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category
 
         # Fill csv files
         for slide_folder in slide_folders:
-            _write_info(slide_folder, output_csv, output_folder, patient_to_category, slides_meta, classes)
+            _write_info(slide_folder, output_csv, output_folder, patient_to_category, slides_meta, classes, magnification)
             
 
-def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int]) -> None:
+def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], magnification: float) -> None:
     slide_id = slide_folder.split('/')[-1]
     patient = slide_id[:12]
     if patient in patient_to_category: 
@@ -194,8 +194,8 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
             slide_class = str(classes[slide_class]) 
         except: # this skips 'normal' slides in the second sorting option that only considers luad vs. lusc slides
             return 
-        tiles = os.listdir(os.path.join(slide_folder, '20.0'))
-        tiles = [os.path.join(slide_folder, '20.0', t) for t in tiles] # get full paths 
+        tiles = os.listdir(os.path.join(slide_folder, str(magnification)))
+        tiles = [os.path.join(slide_folder, str(magnification), t) for t in tiles] # get full paths 
         tiles = [os.path.relpath(t, start=output_folder) for t in tiles] # convert to paths relative to output directory
         for tile in tiles:    
             output_csv[category].write(','.join([tile, slide_class]))
