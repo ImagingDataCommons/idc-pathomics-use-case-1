@@ -41,7 +41,7 @@ def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_op
     classes = _get_classes(sorting_option)
     
     patient_meta_path = os.path.join(output_folder, 'patient_meta_' + str(int(magnification)) + 'x.csv')
-    slides_meta_path = os.path.join(output_folder, 'slides_meta_' + str(int(magnification)) + 'x.csv')
+    slides_meta_path = os.path.join(output_folder, 'slides_meta.csv')
     patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data, magnification)
     slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data, magnification)     
     patient_to_category = _assign_patients_to_category(patient_meta, classes) 
