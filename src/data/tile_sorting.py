@@ -95,8 +95,8 @@ def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[
 def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> Dict[str, str]:
     slides_meta = defaultdict(lambda: None)
     for slide_folder in slide_folders:
-        slide_id = slide_folder.split('/')[-1]
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
+        slide_id = slide_folder.split('/')[-1].replace('_files', '')
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_id, json_data, magnification)
         if _is_cancer_slide(metadata):
             slide_class = _extract_patient_cancer_type(metadata) 
         else: 
@@ -105,9 +105,8 @@ def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnifi
     return slides_meta
 
 
-def _get_info_about_slide(folder: str, json_data: Dict[Any, Any], magnification: float) -> Tuple[Dict[Any,Any], int, str]:
-    slide_name = os.path.basename(folder).replace('_files', '')
-    metadata = json_data[slide_name] 
+def _get_info_about_slide(slide_id: str, json_data: Dict[Any, Any], magnification: float) -> Tuple[Dict[Any,Any], int, str]:
+    metadata = json_data[slide_id] 
     nr_tiles = len([x for x in os.listdir(os.path.join(folder, str(magnification))) if x.endswith('.jpeg')])
     patientID = slide_name[:12]
     return metadata, nr_tiles, patientID
@@ -185,11 +184,11 @@ def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category
             
 
 def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], magnification: float) -> None:
-    slide_id = slide_folder.split('/')[-1]
+    slide_id = slide_folder.split('/')[-1].replace('_files', '')
     patient = slide_id[:12]
     if patient in patient_to_category: 
         category = patient_to_category[patient]
-        slide_class = slides_meta[slide_folder]
+        slide_class = slides_meta[slide_id]
         try: 
             slide_class = str(classes[slide_class]) 
         except: # this skips 'normal' slides in the second sorting option that only considers luad vs. lusc slides
