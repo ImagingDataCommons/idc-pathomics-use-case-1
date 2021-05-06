@@ -168,7 +168,7 @@ def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, 
     return patient_to_category
 
 
-def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: , magnification: float) -> None:
+def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: str, magnification: float) -> None:
     path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '_' + str(magnification) + '.csv')
     path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '_' + str(magnification) + '.csv')
     path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '_' + str(magnification) + '.csv')
