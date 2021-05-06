@@ -40,8 +40,8 @@ def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_op
     
     classes = _get_classes(sorting_option)
     
-    patient_meta_path = os.path.join(output_folder, 'patient_meta_' + str(magnification) + '.csv')
-    slides_meta_path = os.path.join(output_folder, 'slides_meta_' + str(magnification) + '.csv')
+    patient_meta_path = os.path.join(output_folder, 'patient_meta_' + str(int(magnification)) + 'x.csv')
+    slides_meta_path = os.path.join(output_folder, 'slides_meta_' + str(int(magnification)) + 'x.csv')
     patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data, magnification)
     slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data, magnification)     
     patient_to_category = _assign_patients_to_category(patient_meta, classes) 
@@ -169,9 +169,9 @@ def _assign_patients(patient_meta: pd.DataFrame, patient_to_category: Dict[str, 
 
 
 def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], slides_meta: Dict[str, str], classes: Dict[str, int], sorting_option: str, magnification: float) -> None:
-    path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '_' + str(magnification) + '.csv')
-    path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '_' + str(magnification) + '.csv')
-    path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '_' + str(magnification) + '.csv')
+    path_train = os.path.join(output_folder, 'csv_train_' + sorting_option + '_' + str(int(magnification)) + 'x.csv')
+    path_test = os.path.join(output_folder, 'csv_test_' + sorting_option + '_' + str(int(magnification)) + 'x.csv')
+    path_valid = os.path.join(output_folder, 'csv_valid_' + sorting_option + '_' + str(int(magnification)) + 'x.csv')
 
     with open(path_train, 'w') as csv_train, open(path_test, 'w') as csv_test, open(path_valid, 'w') as csv_valid:
         output_csv = {'train': csv_train, 'test': csv_test, 'valid': csv_valid}
