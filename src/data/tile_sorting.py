@@ -69,8 +69,7 @@ def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any], magnif
     patient_meta = defaultdict(lambda: [0, 0, None]) # store nr_tiles_total, nr_tiles_cancer and cancer type per patient
 
     for slide_folder in slide_folders:
-        slide_id = slide_folder.split('/')[-1].replace('_files', '')
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_id, json_data, magnification)
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
         if patientID not in patient_meta:
             patient_cancer_type = _extract_patient_cancer_type(metadata) 
             patient_meta[patientID][2] = patient_cancer_type
@@ -96,8 +95,7 @@ def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[
 def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> Dict[str, str]:
     slides_meta = defaultdict(lambda: None)
     for slide_folder in slide_folders:
-        slide_id = slide_folder.split('/')[-1].replace('_files', '')
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_id, json_data, magnification)
+        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
         if _is_cancer_slide(metadata):
             slide_class = _extract_patient_cancer_type(metadata) 
         else: 
@@ -106,10 +104,11 @@ def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnifi
     return slides_meta
 
 
-def _get_info_about_slide(slide_id: str, json_data: Dict[Any, Any], magnification: float) -> Tuple[Dict[Any,Any], int, str]:
+def _get_info_about_slide(slide_folder: str, json_data: Dict[Any, Any], magnification: float) -> Tuple[Dict[Any,Any], int, str]:
+    slide_id = slide_folder.split('/')[-1].replace('_files', '')
     metadata = json_data[slide_id] 
-    nr_tiles = len([x for x in os.listdir(os.path.join(folder, str(magnification))) if x.endswith('.jpeg')])
-    patientID = slide_name[:12]
+    nr_tiles = len([x for x in os.listdir(os.path.join(slide_folder, '_files', str(magnification))) if x.endswith('.jpeg')])
+    patientID = slide_id[:12]
     return metadata, nr_tiles, patientID
 
 
