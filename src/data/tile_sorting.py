@@ -95,6 +95,7 @@ def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[
 def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> Dict[str, str]:
     slides_meta = defaultdict(lambda: None)
     for slide_folder in slide_folders:
+        slide_id = slide_folder.split('/')[-1].replace('_files', '')
         metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
         if _is_cancer_slide(metadata):
             slide_class = _extract_patient_cancer_type(metadata) 
