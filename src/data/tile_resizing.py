@@ -11,16 +11,16 @@ def copy_folder_structure(input_path, output_path):
 
 def copy_and_resize_tiles(tile_paths_in, output_folder):
     for tile_path_in in tile_paths_in:
-        len_out = len(output_folder.split('/'))
-        tile_path_out = os.path.join(output_folder, '/'.join(tile_path_in.split('/')[len_out-1:]))
+        tile_path_out = os.path.join(output_folder, '/'.join(tile_path_in.split('/')[-3:]))
+        print(tile_path_in, tile_path_out)
         if not os.path.exists(tile_path_out):
             img = Image.open(tile_path_in)
             resized = img.resize((128,128))
             resized.save(tile_path_out)
 
 if __name__ == '__main__':
-    input_path = '/home/dschacherer/mnt/gaia/imageData/deep_learning/output/imaging-data-commons/idc-pathomics-use-case-1/tiles/'
-    output_path = '/home/dschacherer/mnt/gaia/imageData/deep_learning/output/imaging-data-commons/idc-pathomics-use-case-1/tiles_128_5x/'
-    copy_folder_structure(input_path, output_path)
-    tile_paths_in = glob(os.path.join(input_path, '*/5.0/*jpeg'))
+    input_path = '/home/dschacherer/mnt/gaia/imageData/deep_learning/input/data/imaging-data-commons/idc-pathomics-use-case-1/tiles_512/'
+    output_path = '/home/dschacherer/idc_input/tiles/'
+    #copy_folder_structure(input_path, output_path)
+    tile_paths_in = glob(os.path.join(input_path, 'TCGA-34-2596-01A-01-TS1.9e71291e-b6bf-47cd-ae17-17320ccb3f6c_files/5.0/*jpeg'))
     copy_and_resize_tiles(tile_paths_in, output_path)
