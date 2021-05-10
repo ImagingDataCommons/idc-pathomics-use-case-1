@@ -250,7 +250,7 @@ class ROCAnalysis():
         plt.legend(loc='lower right')
 
 
-    def print_and_save_tabluar_results(self, output_folder):
+    def print_and_save_tabluar_results(self, output_path):
         class_to_str_mapping = EXPERIMENTS[self.experiment]
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'
@@ -274,6 +274,6 @@ class ROCAnalysis():
             results.rename(index=class_to_str_mapping, inplace=True)
         print(results)
         html = results.to_html()
-        text_file = open(os.path.join(output_folder, 'results_table.html'), 'w')
+        text_file = open(output_path, 'w')
         text_file.write(html)
         text_file.close()
