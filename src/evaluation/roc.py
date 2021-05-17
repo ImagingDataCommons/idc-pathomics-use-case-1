@@ -63,7 +63,7 @@ class ROCAnalysis():
             if self.num_classes == 3: 
                 auc['micro'] = skm.roc_auc_score(reference.ravel(), prediction.ravel())
                 ci['micro'] = self._get_confidence_interval_by_bootstrapping(reference.ravel(), prediction.ravel())
-                # TODO: macro ci
+                auc['macro'] = sum(auc[i]for i in range(self.num_classes))/self.num_classes
 
         return auc, ci
 
