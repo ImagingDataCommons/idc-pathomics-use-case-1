@@ -6,7 +6,7 @@ from glob import glob
 def copy_folder_structure(input_path, output_path):
     for dirpath, _, _ in os.walk(input_path):
         structure = os.path.join(output_path, dirpath[len(input_path):])
-        if not os.path.isdir(structure) and not structure.endswith('20.0'):
+        if not os.path.isdir(structure):
             os.mkdir(structure)
 
 def copy_and_resize_tiles(tile_paths_in, output_folder):
@@ -15,12 +15,12 @@ def copy_and_resize_tiles(tile_paths_in, output_folder):
         print(tile_path_in, tile_path_out)
         if not os.path.exists(tile_path_out):
             img = Image.open(tile_path_in)
-            resized = img.resize((128,128))
+            resized = img.resize((64,64))
             resized.save(tile_path_out)
 
 if __name__ == '__main__':
-    input_path = '/home/dschacherer/mnt/gaia/imageData/deep_learning/input/data/imaging-data-commons/idc-pathomics-use-case-1/tiles_512/'
-    output_path = '/home/dschacherer/idc_input/tiles/'
-    #copy_folder_structure(input_path, output_path)
-    tile_paths_in = glob(os.path.join(input_path, 'TCGA-34-2596-01A-01-TS1.9e71291e-b6bf-47cd-ae17-17320ccb3f6c_files/5.0/*jpeg'))
+    input_path = '/home/dschacherer/idc_input/tiles512_20x'
+    output_path = '/home/dschacherer/idc_input/tiles64_20x'
+    copy_folder_structure(input_path, output_path)
+    tile_paths_in = glob(os.path.join(input_path, '*/20.0/*jpeg'))
     copy_and_resize_tiles(tile_paths_in, output_path)
