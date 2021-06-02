@@ -15,12 +15,12 @@ def copy_and_resize_tiles(tile_paths_in, output_folder):
         print(tile_path_in, tile_path_out)
         if not os.path.exists(tile_path_out):
             img = Image.open(tile_path_in)
-            resized = img.resize((64,64))
+            resized = img.resize((75,75))
             resized.save(tile_path_out)
 
 if __name__ == '__main__':
     input_path = '/home/dschacherer/idc_input/tiles512_20x/'
-    output_path = '/home/dschacherer/idc_input/tiles64_20x/'
+    output_path = '/home/dschacherer/idc_input/tiles75_20x/'
     copy_folder_structure(input_path, output_path)
     tile_paths_in = glob(os.path.join(input_path, '*/20.0/*jpeg'))
     copy_and_resize_tiles(tile_paths_in, output_path)
