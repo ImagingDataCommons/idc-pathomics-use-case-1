@@ -17,7 +17,8 @@ from evaluation.predictions import Predictions
 
 EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 1:'LUSC'}, 'norm_luad_lusc': {0:'Normal', 1:'LUAD', 2:'LUSC'}, 
                'mutations': {0: 'STK11', 1: 'EGFR', 2: 'SETBP1', 3: 'TP53', 4: 'FAT1', 5: 'KRAS', 6: 'KEAP1', 7: 'LRP1B', 8: 'FAT4', 9: 'NF1'}, 
-               'binary_egfr': {0: 'Normal', 1: 'EGFR'}, 'binary_stk11': {0: 'Normal', 1: 'STK11'}, 'binary_setbp1': {0: 'Normal', 1: 'SETBP1'}}
+               'binary_egfr': {0: 'Normal', 1: 'EGFR'}, 'binary_stk11': {0: 'Normal', 1: 'STK11'}, 'binary_setbp1': {0: 'Normal', 1: 'SETBP1'}, 
+               'binary_tp53': {0: 'Normal', 1: 'TP53'}}
 
 class ROCAnalysis():
 
