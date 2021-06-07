@@ -50,6 +50,7 @@ class ROCAnalysis():
 
         if self.num_classes == 2: 
             prediction = np.reshape(prediction, (1, -1)).squeeze()
+            print('hey', prediction.shape, reference.shape)
             auc[1] = skm.roc_auc_score(reference, prediction)
             ci[1] = self._get_confidence_interval_by_bootstrapping(reference, prediction)
 
