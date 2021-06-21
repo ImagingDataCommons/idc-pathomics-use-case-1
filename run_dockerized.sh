@@ -28,7 +28,6 @@ if [ "$INTERACTIVE" = false ] # run docker non-interactively
 then
     docker run \
         -it \
-        --name "idc-pathomics-use-case-1-${NOTEBOOK}" \
         --gpus all \
         -u $(id -u ${USER}):$(id -g ${USER}) \
         -v /home/dschacherer/idc_input:/input_data \
