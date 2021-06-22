@@ -13,7 +13,7 @@ def prepare_mutation_data(source_folder: str, mutations_gt_path: str, tiles_pred
 
     mutations_per_patient = _get_mutations_per_patient(mutations_gt_path)
 
-    patient_meta_path = os.path.join(source_folder, 'patient_meta.csv')
+    patient_meta_path = os.path.join(source_folder, 'patient_meta_20x.csv')
     if not os.path.isfile(patient_meta_path): 
         raise ValueError('File patient_meta.csv not found.')
     else:
