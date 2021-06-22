@@ -109,7 +109,7 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
         mutations = mutations_per_patient[patient]
         mutations.sort()
         mutations = ';'.join([str(m) for m in mutations])
-        slide_id = slide_folder.split('/')[-1]
+        slide_id = slide_folder.split('/')[-1].replace('_files', '')
         slide_class = slides_meta[slide_id]
         if slide_class == 'luad':
             tiles = os.listdir(os.path.join(slide_folder, '20.0'))
