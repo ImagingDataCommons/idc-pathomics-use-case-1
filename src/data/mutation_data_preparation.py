@@ -87,9 +87,9 @@ def _load_predicted_as_luad(predicted_luad_tiles):
 
 
 def _write_csv_files(slide_folders: str, output_folder: str, patient_to_category: Dict[str, str], mutations_per_patient: Dict[str, list], slides_meta: Dict[str, str], luad_tiles: List[str] = None) -> None:
-    path_train = os.path.join(output_folder, 'csv_train_mutations_split1_notonlyluad.csv')
-    path_test = os.path.join(output_folder, 'csv_test_mutations_split1_notonlyluad.csv')
-    path_valid = os.path.join(output_folder, 'csv_valid_mutations_split1_notonlyluad.csv')
+    path_train = os.path.join(output_folder, 'csv_train_mutations_split1_CoudrayTiles.csv')
+    path_test = os.path.join(output_folder, 'csv_test_mutations_split1_CoudrayTiles.csv')
+    path_valid = os.path.join(output_folder, 'csv_valid_mutations_split1_CoudrayTiles.csv')
 
     with open(path_train, 'w') as csv_train, open(path_test, 'w') as csv_test, open(path_valid, 'w') as csv_valid:
         output_csv = {'train': csv_train, 'test': csv_test, 'valid': csv_valid}
