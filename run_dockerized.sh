@@ -37,7 +37,7 @@ then
         -e "GIT_COMMIT=${COMMIT}" \
         --entrypoint /bin/bash \
         idc-pathomics-use-case-1 \
-        -c "jupyter nbconvert --to=script --output-dir=/tmp --RegexRemovePreprocessor.patterns=\"['^\%']\" ${NOTEBOOK}.ipynb ; PYTHONPATH=. python3 /tmp/${NOTEBOOK}.py"
+        -c "jupyter nbconvert --to=python --output-dir=/tmp --RegexRemovePreprocessor.patterns=\"['^\%']\" ${NOTEBOOK}.ipynb ; PYTHONPATH=. python3 /tmp/${NOTEBOOK}.py"
 else # run docker interactively
     docker run \
         -it \
