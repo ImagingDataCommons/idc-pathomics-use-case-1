@@ -27,7 +27,7 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
         slide = open_slide(slidepath) 
         dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
         #available_magnification=_get_available_magnifications(slide)
-        print(slide, dz)# available_magnification)
+        print(slide.level_count, slide.dimensions, slide.level_dimensions, slide.properties, slide.associated_images, slide.get_best_level_for_downsample)# available_magnification)
 
         #_generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
