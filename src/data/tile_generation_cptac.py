@@ -21,9 +21,14 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
     """
 
     print('Reading input data from %s' %(slidespath))
-    slides = glob(slidespath + '/*/*svs', recursive=True) 
-    for slidepath in slides:
-        _generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
+    slides = glob(slidespath + '/*/DCM_1.tif', recursive=True) 
+    for slidepath in slides[:2]:
+        slide = open_slide(slidepath) 
+        dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
+        available_magnification=_get_available_magnifications(slide)
+        print(slide, dz, available_magnification)
+
+        #_generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
 
 def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnification: float) -> None:
@@ -76,7 +81,7 @@ def _get_available_magnifications(slide: openslide.OpenSlide) -> Tuple[float]:
     try: 
         objective = float(slide.properties[openslide.PROPERTY_NAME_OBJECTIVE_POWER])
     except: 
-        print('No objective information found. Slide is skipped.')
+        print('%s: no objective information found. Slide is skipped.' %(slide_name))
     available_magnifications = tuple(objective/x for x in factors) 
     return available_magnifications
 
