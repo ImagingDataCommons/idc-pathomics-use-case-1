@@ -30,7 +30,7 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
         print(slide.properties)
         print('dz', dz.level_count, dz.tile_count, dz.level_tiles, dz.level_dimensions)
 
-        print(_get_available_magnifications(slide))
+        print(_get_required_level(slide, dz, 20.0))
         #_generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
 
@@ -71,7 +71,9 @@ def _get_required_level(slide: openslide.OpenSlide, dz: DeepZoomGenerator, desir
     level = -1
     available_magnifications = _get_available_magnifications(slide)
     for curr_level in range(dz.level_count-1, -1, -1):
-        this_magnification = available_magnifications[0]/pow(2, dz.level_count - (curr_level+1)) # compute current magnification depending on the recent level  
+        this_magnification = available_magnifications[0]/pow(2, dz.level_count - (curr_level+1)) # compute current magnification depending on the recent level
+        print(curr_level, this_magnification)
+  
         if this_magnification != desired_magnification: 
             continue
         level = curr_level
