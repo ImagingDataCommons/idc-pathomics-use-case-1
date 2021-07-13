@@ -45,15 +45,16 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
     if os.path.exists(tiledir):
         print("Slide %s already tiled" % slide_name)
         return 
-    # Assert that highest resolution is 20x = 20000px/cm
-    assert 20000 < int(slide.properties[tiff.XResolution]) < 20300, 'Wrong resolution. Slide is skipped.'
-    assert 20000 < int(slide.properties[tiff.YResolution]) < 20300, 'Wrong resolution. Slide is skipped.'
     
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_name))
     slide = open_slide(slidepath)  
     dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
     
+    # Assert that highest resolution is 20x = 20000px/cm
+    assert 20000 < int(slide.properties[tiff.XResolution]) < 20300, 'Wrong resolution. Slide is skipped.'
+    assert 20000 < int(slide.properties[tiff.YResolution]) < 20300, 'Wrong resolution. Slide is skipped.'
+
     # Tiling 
     level = dz.level_count-1 # take highest level = original resolution
     if level != -1: 
