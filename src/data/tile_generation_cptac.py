@@ -31,7 +31,8 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
 
     # Check if slide is already tiled
     print(slidepath)
-    slide_name = os.path.splitext(os.path.basename(slidepath))[0] 
+    slide_name = os.path.splitext(slidepath)[-2]
+    print(slide_name) 
     print(os.path.splitext(os.path.basename(slidepath)))
     output_path = os.path.join(output_folder, slide_name) 
     tiledir = os.path.join('%s_files' %(output_path), str(desired_magnification)) 
