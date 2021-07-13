@@ -30,7 +30,7 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
         print(slide.properties)
         print('dz lev_count, tile_count, level_tiles, level_dim', dz.level_count, dz.tile_count, dz.level_tiles, dz.level_dimensions)
 
-        print(_get_required_level(slide, dz, 20.0))
+        #print(_get_required_level(slide, dz, 20.0))
         #_generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
 
