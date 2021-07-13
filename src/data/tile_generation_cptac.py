@@ -31,7 +31,7 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
 
     # Check if slide is already tiled
     print(slidepath)
-    slide_name = os.path.splitext(slidepath)[-2]
+    slide_name = os.path.splitext(slidepath)[0].split('/')[-2]
     print('hey',slide_name) 
     print(os.path.splitext(os.path.basename(slidepath)))
     output_path = os.path.join(output_folder, slide_name) 
