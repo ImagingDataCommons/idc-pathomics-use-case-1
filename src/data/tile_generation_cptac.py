@@ -23,17 +23,14 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
     print('Reading input data from %s' %(slidespath))
     slides = glob(slidespath + '/*/DCM_0', recursive=True) 
     print(slides)
-    for slidepath in slides[:2]:
+    for slidepath in slides:
         _generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
 
 
 def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnification: float) -> None:
 
     # Check if slide is already tiled
-    print(slidepath)
     slide_name = os.path.splitext(slidepath)[0].split('/')[-2]
-    print('hey',slide_name) 
-    print(os.path.splitext(os.path.basename(slidepath)))
     output_path = os.path.join(output_folder, slide_name) 
     tiledir = os.path.join('%s_files' %(output_path), str(desired_magnification)) 
     if os.path.exists(tiledir):

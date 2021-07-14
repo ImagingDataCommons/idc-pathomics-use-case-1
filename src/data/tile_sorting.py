@@ -31,19 +31,15 @@ def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_op
 
     slide_folders = glob(os.path.join(tiles_folder, '*_files'))
 
-    if not '.json' in json_file:
+    if not json_file.endswith('.json'):
         raise ValueError('Please provide a metadata file in JSON format.')
-    else: 
-        with open(json_file) as json_file: 
-            json_data = json.loads(json_file.read())
-            json_data = dict((jd['file_name'].replace('.svs', ''), jd) for jd in json_data) 
     
     classes = _get_classes(sorting_option)
     
     patient_meta_path = os.path.join(output_folder, 'patient_meta_' + str(int(magnification)) + 'x.csv')
     slides_meta_path = os.path.join(output_folder, 'slides_meta.csv')
-    patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_data, magnification)
-    slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_data, magnification)     
+    patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_file, magnification)
+    slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_file, magnification)     
     patient_to_category = _assign_patients_to_category(patient_meta, classes) 
     _write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option, magnification)
 
@@ -55,14 +51,22 @@ def _get_classes(sorting_option: str) -> Dict[str, int]:
         raise ValueError('Please specify a valid sorting option.')
 
 
-def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> pd.DataFrame: 
+def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_file: str, magnification: float) -> pd.DataFrame: 
     # load or generate internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
     if os.path.isfile(patient_meta_path): 
         patient_meta = pd.read_csv(patient_meta_path)
     else: 
+        json_data = _load_json_as_dict(json_file)
         patient_meta = _generate_patient_meta(slide_folders, json_data, magnification)
         patient_meta.to_csv(patient_meta_path, index=False)
     return patient_meta
+
+
+def _load_json_as_dict(json_file: str) -> Dict[Any, Any]:
+    with open(json_file) as json_file: 
+        json_data = json.loads(json_file.read())
+        json_data = dict((jd['file_name'].replace('.svs', ''), jd) for jd in json_data) 
+    return json_data
 
 
 def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> pd.DataFrame:
@@ -81,11 +85,12 @@ def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any], magnif
     return _convert_to_dataframe(patient_meta)
 
 
-def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> Dict[str, str]:
+def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_file: str, magnification: float) -> Dict[str, str]:
     if os.path.isfile(slides_meta_path): 
         with open(slides_meta_path, 'r') as slides_meta_file: 
             slides_meta = json.loads(slides_meta_file.read())
     else: 
+        json_data = _load_json_as_dict(json_file)
         slides_meta = _generate_slides_meta(slide_folders, json_data, magnification)
         with open(slides_meta_path, 'w') as slides_meta_file:
             json.dump(slides_meta, slides_meta_file)
