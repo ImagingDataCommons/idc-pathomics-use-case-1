@@ -64,7 +64,7 @@ def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_file: str
 
 def _load_json_as_dict(json_file: str) -> Dict[Any, Any]:
     with open(json_file) as json_file: 
-        json_data = json.loads(json_file.read())
+        json_data = json.load(json_file)
         json_data = dict((jd['file_name'].replace('.svs', ''), jd) for jd in json_data) 
     return json_data
 
