@@ -73,7 +73,7 @@ def _get_slide_id_from_slidepath(slidepath, metadata):
     slide_name = os.path.basename(slidepath) 
     print(slide_name)
     print(metadata.head())
-    match = metadata[metadata['gcs_url'].str.match('.*slide_name$') == True]
+    match = metadata[metadata['gcs_url'].str.match(r'.*slide_name$') == True]
     print(match)
 
 
