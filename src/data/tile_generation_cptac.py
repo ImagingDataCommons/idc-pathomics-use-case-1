@@ -1,19 +1,19 @@
 import os
 from glob import glob 
 import numpy as np
-import openslide 
+import pandas as pd
 from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
 from PIL.Image import Image
-from typing import Tuple
 
 
-def generate_tiles(slidespath: str, output_folder: str, desired_magnification: float = 20.0) -> None:
+def generate_tiles(slidespath: str, metadata_path: str, output_folder: str) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
     Args:
-        slidespath (str): absolute path to the folder containing each svs-slide in a separate subfolder as done by default when downloading the data from the GDC.
+        slidespath (str): absolute path to the folder containing each svs-slide in a separate subfolder as done by default when downloading the data from the IDC.
+        metadata_path (str): absolute path to the metadata file. 
         output_folder (str): absolute path to the output folder. A subfolder will be created for every slide containing the tiles.
 
     Returns:
@@ -21,10 +21,12 @@ def generate_tiles(slidespath: str, output_folder: str, desired_magnification: f
     """
 
     print('Reading input data from %s' %(slidespath))
-    slides = glob(slidespath + '/*/DCM_0', recursive=True) 
+    slides = glob(slidespath + '*.dcm', recursive=True) 
+    metadata = pd.read_csv(metadata_path)
     print(slides)
     for slidepath in slides:
-        _generate_tiles_for_slide(slidepath, output_folder, desired_magnification)
+        print(slidepath)
+        #_generate_tiles_for_slide(slidepath, metadata, output_folder)
 
 
 def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnification: float) -> None:
@@ -32,7 +34,7 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
     # Check if slide is already tiled
     slide_name = os.path.splitext(slidepath)[0].split('/')[-2]
     output_path = os.path.join(output_folder, slide_name) 
-    tiledir = os.path.join('%s_files' %(output_path), str(desired_magnification)) 
+    tiledir = os.path.join('%s_files' %(output_path)) 
     if os.path.exists(tiledir):
         print("Slide %s already tiled" % slide_name)
         return 
@@ -61,6 +63,10 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
                     avg_bkg = _get_amount_of_background(tile)
                     if avg_bkg <= 0.5 and tile.size[0] == 512 and tile.size[1] == 512: 
                         tile.save(tilename, quality=90)
+
+
+def _get_slide_id_from_metadata(dcm_path, metadata):
+    pass 
 
 
 def _get_amount_of_background(tile: Image) -> float:
