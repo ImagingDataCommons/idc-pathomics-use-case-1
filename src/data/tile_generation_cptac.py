@@ -70,7 +70,7 @@ def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder:
 
 
 def _get_slide_id_from_slidepath(slidepath, metadata):
-    return os.path.basename(slidepath).rstrip('.*') 
+    return os.path.basename(slidepath).replace('.dcm', '') 
 
 
 def _get_amount_of_background(tile: Image) -> float:
