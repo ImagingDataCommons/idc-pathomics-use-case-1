@@ -21,27 +21,30 @@ def generate_tiles(slidespath: str, metadata_path: str, output_folder: str) -> N
     """
 
     print('Reading input data from %s' %(slidespath))
-    print(os.path.join(slidespath, '*.dcm'))
     slides = glob(os.path.join(slidespath, '*.dcm')) 
-    metadata = pd.read_csv(metadata_path)
     print(slides)
     for slidepath in slides:
         print(slidepath)
-        #_generate_tiles_for_slide(slidepath, metadata, output_folder)
+        metadata = pd.read_csv(metadata_path)
+        slide_id = _get_slide_id_from_slidepath(slidepath, metadata)
+        print(slide_id)
+        #_generate_tiles_for_slide(slidepath, metadata_path, output_folder)
 
 
-def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnification: float) -> None:
+def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder: str) -> None:
+
+    metadata = pd.read_csv(metadata_path)
+    slide_id = _get_slide_id_from_slidepath(slidepath, metadata)
+    output_path = os.path.join(output_folder, slide_id) 
+    tiledir = os.path.join('%s_files' %(output_path)) 
 
     # Check if slide is already tiled
-    slide_name = os.path.splitext(slidepath)[0].split('/')[-2]
-    output_path = os.path.join(output_folder, slide_name) 
-    tiledir = os.path.join('%s_files' %(output_path)) 
     if os.path.exists(tiledir):
-        print("Slide %s already tiled" % slide_name)
+        print("Slide %s already tiled" % slide_id)
         return 
     
     # Open slide and instantiate a DeepZoomGenerator for that slide
-    print('Processing: %s' %(slide_name))
+    print('Processing: %s' %(slide_id))
     slide = open_slide(slidepath)  
     dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
     
@@ -66,8 +69,8 @@ def _generate_tiles_for_slide(slidepath: str, output_folder: str, desired_magnif
                         tile.save(tilename, quality=90)
 
 
-def _get_slide_id_from_metadata(dcm_path, metadata):
-    pass 
+def _get_slide_id_from_slidepath(slidepath, metadata):
+    return os.path.basename(slidepath).rstrip('.*') 
 
 
 def _get_amount_of_background(tile: Image) -> float:
