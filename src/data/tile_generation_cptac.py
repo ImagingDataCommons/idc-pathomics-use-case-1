@@ -72,9 +72,8 @@ def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder:
 def _get_slide_id_from_slidepath(slidepath, metadata):
     slide_name = os.path.basename(slidepath) 
     regex_string = r'.*{x}$'.format(x=slide_name)
-    slide_id = metadata[metadata['gcs_url'].str.match(regex_string) == True]['slide_id'].tolist()
-    print(slide_id)
-
+    slide_id = metadata[metadata['gcs_url'].str.match(regex_string) == True]['slide_id'].items()
+    return slide_id
 
 
 def _get_amount_of_background(tile: Image) -> float:
