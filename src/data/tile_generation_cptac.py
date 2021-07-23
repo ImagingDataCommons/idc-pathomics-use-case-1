@@ -72,6 +72,7 @@ def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder:
 def _get_slide_id_from_slidepath(slidepath, metadata):
     slide_name = os.path.basename(slidepath) 
     print(slide_name)
+    print(metadata.head())
     match = metadata[metadata['gcs_url'].str.match('.*slide_name$')]
     print(match)
 
