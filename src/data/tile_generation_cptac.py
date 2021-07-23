@@ -22,7 +22,7 @@ def generate_tiles(slidespath: str, metadata_path: str, output_folder: str) -> N
 
     print('Reading input data from %s' %(slidespath))
     print(os.path.join(slidespath, '*.dcm'))
-    slides = glob(slidespath + '*.dcm') 
+    slides = glob(os.path.join(slidespath, '*.dcm')) 
     metadata = pd.read_csv(metadata_path)
     print(slides)
     for slidepath in slides:
