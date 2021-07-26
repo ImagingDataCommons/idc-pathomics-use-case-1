@@ -5,9 +5,10 @@ import pandas as pd
 from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
 from PIL.Image import Image
+import subprocess
 
 
-def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str) -> None:
+def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, google_cloud_project_id: str) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
@@ -25,10 +26,11 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str) -
     for _, row in slides_metadata.iterrows():
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
-        _generate_tiles_for_slide(path_to_slide, slide_id, output_folder)
+        gcs_url = row['gcs_url']
+        _generate_tiles_for_slide(path_to_slide, slide_id, gcs_url, output_folder, google_cloud_project_id)
 
 
-def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, output_folder: str) -> None:
+def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, google_cloud_project_id: str) -> None:
 
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
@@ -36,6 +38,11 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, output_folder: 
         print("Slide %s already tiled" % slide_id)
         return 
     
+    # Download slide in DICOM format using gsutil
+    cmd = ['gsutil', '-u {id}'.format(id=google_cloud_project_id), 
+            'cp', '{url}'.format(url=gcs_url), '{local_dir}'.format(local_dir=os.path.dirname(path_to_slide))]
+    subprocess.run(cmd)
+
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
     slide = open_slide(path_to_slide)  
