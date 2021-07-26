@@ -41,7 +41,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     # Download slide in DICOM format using gsutil
     cmd = ['gsutil', '-u {id}'.format(id=google_cloud_project_id), 
             'cp', '{url}'.format(url=gcs_url), '{local_dir}'.format(local_dir=os.path.dirname(path_to_slide))]
-    cmd = ['echo test']
+    cmd = ['echo', 'test']
     subprocess.call(cmd)
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
