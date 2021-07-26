@@ -22,32 +22,23 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str) -
 
     print('Reading input data from %s' %(slides_folder))
     slides_metadata = pd.read_csv(metadata_path)
-    for i, row in slides_metadata.iterrows():
+    for _, row in slides_metadata.iterrows():
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
-        print(slide_id, path_to_slide)
-        #_generate_tiles_for_slide(slidepath, metadata_path, output_folder)
+        _generate_tiles_for_slide(path_to_slide, slide_id, output_folder)
 
 
-
-    
-
-
-def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder: str) -> None:
-
-    metadata = pd.read_csv(metadata_path)
-    slide_id = _get_slide_id_from_slidepath(slidepath, metadata)
-    output_path = os.path.join(output_folder, slide_id) 
-    tiledir = os.path.join('%s_files' %(output_path)) 
+def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, output_folder: str) -> None:
 
     # Check if slide is already tiled
-    if os.path.exists(tiledir):
+    output_dir_tiles = os.path.join(output_folder, slide_id) 
+    if os.path.exists(output_dir_tiles):
         print("Slide %s already tiled" % slide_id)
         return 
     
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
-    slide = open_slide(slidepath)  
+    slide = open_slide(path_to_slide)  
     dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
     
     # Assert that highest resolution is 20x = 20000px/cm
@@ -58,11 +49,11 @@ def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder:
     level = dz.level_count-1 # take highest level = original resolution
     if level != -1: 
 
-        os.makedirs(tiledir) 
+        os.makedirs(output_dir_tiles) 
         cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
         for row in range(rows):
             for col in range(cols): 
-                tilename = os.path.join(tiledir, '%d_%d.%s' %(col, row, 'jpeg'))
+                tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
                 if not os.path.exists(tilename):
                     tile = dz.get_tile(level, address=(col, row)) 
                     # only store tile if there is enough amount of information, i.e. < 50 % background and the tile size is alright
@@ -74,17 +65,9 @@ def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder:
 def _get_path_to_slide_from_gcs_url(gcs_url, slides_folder):
     filename = os.path.basename(gcs_url)
     return os.path.join(slides_folder, filename)
-    
-
-def _get_slide_id_from_slidepath(slidepath, metadata):
-    slide_name = os.path.basename(slidepath) 
-    regex_string = r'.*{x}$'.format(x=slide_name)
-    slide_id = metadata[metadata['gcs_url'].str.match(regex_string) == True]['slide_id'].item()
-    return slide_id
 
 
 def _get_amount_of_background(tile: Image) -> float:
-
     grey = tile.convert(mode='L') 
     bw = grey.point(lambda x: 0 if x < 220 else 1, mode='F') 
     avg_bkg = np.average(np.array(np.asarray(bw)))
