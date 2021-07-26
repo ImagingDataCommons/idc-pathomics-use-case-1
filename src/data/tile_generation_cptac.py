@@ -7,28 +7,30 @@ from openslide.deepzoom import DeepZoomGenerator
 from PIL.Image import Image
 
 
-def generate_tiles(slidespath: str, metadata_path: str, output_folder: str) -> None:
+def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
     Args:
-        slidespath (str): absolute path to the folder containing each svs-slide in a separate subfolder as done by default when downloading the data from the IDC.
+        slidesfolder (str): absolute path to the folder containing the DICOM slides. 
         metadata_path (str): absolute path to the metadata file. 
-        output_folder (str): absolute path to the output folder. A subfolder will be created for every slide containing the tiles.
+        output_folder (str): absolute path to the output folder. A separate subfolder containing the tiles will be created for every slide.
 
     Returns:
         None
     """
 
-    print('Reading input data from %s' %(slidespath))
-    slides = glob(os.path.join(slidespath, '*.dcm')) 
-    print(slides)
-    for slidepath in slides:
-        print(slidepath)
-        metadata = pd.read_csv(metadata_path)
-        slide_id = _get_slide_id_from_slidepath(slidepath, metadata)
-        print(slide_id)
+    print('Reading input data from %s' %(slides_folder))
+    slides_metadata = pd.read_csv(metadata_path)
+    for i, row in slides_metadata.iterrows():
+        path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
+        slide_id = row['slide_id']
+        print(slide_id, path_to_slide)
         #_generate_tiles_for_slide(slidepath, metadata_path, output_folder)
+
+
+
+    
 
 
 def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder: str) -> None:
@@ -68,6 +70,11 @@ def _generate_tiles_for_slide(slidepath: str, metadata_path: str, output_folder:
                     if avg_bkg <= 0.5 and tile.size[0] == 512 and tile.size[1] == 512: 
                         tile.save(tilename, quality=90)
 
+
+def _get_path_to_slide_from_gcs_url(gcs_url, slides_folder):
+    filename = os.path.basename(gcs_url)
+    return os.path.join(slides_folder, filename)
+    
 
 def _get_slide_id_from_slidepath(slidepath, metadata):
     slide_name = os.path.basename(slidepath) 
