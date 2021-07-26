@@ -43,8 +43,8 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, output_folder: 
     
     # Assert that highest resolution is 20x = 20000px/cm
     print(int(slide.properties['tiff.XResolution']), int(slide.properties['tiff.YResolution']))
-    assert 20000 < int(slide.properties['tiff.XResolution']) < 20300, 'Wrong resolution. Slide is skipped.'
-    assert 20000 < int(slide.properties['tiff.YResolution']) < 20300, 'Wrong resolution. Slide is skipped.'
+    assert 19700 < int(slide.properties['tiff.XResolution']) < 20300, 'Wrong resolution. Slide is skipped.'
+    assert 19700 < int(slide.properties['tiff.YResolution']) < 20300, 'Wrong resolution. Slide is skipped.'
 
     # Tiling 
     level = dz.level_count-1 # take highest level = original resolution
