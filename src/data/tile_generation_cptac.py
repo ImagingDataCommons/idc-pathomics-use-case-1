@@ -13,9 +13,10 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, g
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
     Args:
-        slidesfolder (str): absolute path to the folder containing the DICOM slides. 
+        slides_folder (str): absolute path to the folder containing the DICOM slides. 
         metadata_path (str): absolute path to the metadata file. 
         output_folder (str): absolute path to the output folder. A separate subfolder containing the tiles will be created for every slide.
+        google_cloud_project_id (str): ID of the Google Cloud Project used. 
 
     Returns:
         None
@@ -40,18 +41,12 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     
     # Download slide in DICOM format using gsutil
     cmd = ['gsutil -u {id}  cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
-    print(cmd)
     subprocess.run(cmd, shell=True)
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
     slide = open_slide(path_to_slide)  
     dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
-    
-    # Assert that highest resolution is around 20x = 20000px/cm
-    print(int(slide.properties['tiff.XResolution']), int(slide.properties['tiff.YResolution']))
-    assert 19700 < int(slide.properties['tiff.XResolution']) < 20300, 'Wrong resolution. Slide is skipped.'
-    assert 19700 < int(slide.properties['tiff.YResolution']) < 20300, 'Wrong resolution. Slide is skipped.'
 
     # Tiling 
     level = dz.level_count-1 # take highest level = original resolution
@@ -68,6 +63,9 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
                     avg_bkg = _get_amount_of_background(tile)
                     if avg_bkg <= 0.5 and tile.size[0] == 512 and tile.size[1] == 512: 
                         tile.save(tilename, quality=90)
+
+    # After tiling delete the WSI to save disk space
+    os.remove(path_to_slide)
 
 
 def _get_path_to_slide_from_gcs_url(gcs_url, slides_folder):

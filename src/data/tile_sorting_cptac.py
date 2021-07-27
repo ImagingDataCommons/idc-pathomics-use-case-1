@@ -10,7 +10,7 @@ from typing import List, Tuple, Dict, Any
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lusc':1}, 'luad_lusc': {'luad':0, 'lusc':1}, 'norm_luad_lusc': {'normal':0, 'luad':1, 'lusc':2}}
 
 
-def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_option: str) -> None:
+def sort_tiles(tiles_folder: str, metadata_path: str, output_folder: str, sorting_option: str) -> None:
     """ 
     Sort the tiles by one of the following three options while balancing classes to be distributed equally to training
     test and validation set. 
@@ -21,20 +21,21 @@ def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_op
 
     Args:
         tiles_folder (str): absolute path to the folder containing all tiles (in separate subfolders per slide)
-        json_file (str): absolute path to JSON file containing the metadata (information about classes etc.)
-        output_folder (str): absolute path to the output folder where to store the csv files
-        sorting_option (int): one of the three above-mentioned sorting options specified by the respective identifier
+        slides_file (str): absolute path to CSV file containing required metadata (information about tissue_types etc.)
+        output_folder (str): absolute path to the output folder where to store the csv files.
+        sorting_option (int): one of the three above-mentioned sorting options specified by the respective identifier.
 
     Returns:
         None
     """
 
-    slide_folders = glob(os.path.join(tiles_folder, '*_files'))
+    slide_folders = glob(os.path.join(tiles_folder, '*'))
+    print(slide_folders)
 
-    if not json_file.endswith('.json'):
-        raise ValueError('Please provide a metadata file in JSON format.') 
+    if not json_file.endswith('.csv'):
+        raise ValueError('Please provide a metadata file in CSV format.') 
     else: 
-        json_metadata = _load_required_metadata_as_dict(json_file)
+        slides_metadata = pd.read_csv(metadata_path)
     
     classes = _get_classes(sorting_option)
     
@@ -42,6 +43,7 @@ def sort_tiles(tiles_folder: str, json_file: str, output_folder: str, sorting_op
     slides_meta_path = os.path.join(output_folder, 'slides_meta.csv')
     patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_metadata)
     slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_metadata)     
+    
     patient_to_category = _assign_patients_to_category(patient_meta, classes) 
     _write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option)
 
