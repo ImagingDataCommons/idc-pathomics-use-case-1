@@ -39,7 +39,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
         return 
     
     # Download slide in DICOM format using gsutil
-    cmd = ['gsutil', 'cp', '{url}'.format(url=gcs_url), '{local_dir}'.format(local_dir=os.path.dirname(path_to_slide))]
+    cmd = ['gsutil cp', '{url}'.format(url=gcs_url), '{local_dir}'.format(local_dir=os.path.dirname(path_to_slide))]
     print(cmd)
     subprocess.run(cmd, shell=True)
 
