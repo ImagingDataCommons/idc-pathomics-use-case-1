@@ -46,23 +46,24 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
     slide = open_slide(path_to_slide)  
-    dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
+    #dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
+    dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
+
 
     # Tiling 
-    level = dz.level_count-1 # take highest level = original resolution
-    if level != -1: 
-
-        os.makedirs(output_dir_tiles) 
-        cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
-        for row in range(rows):
-            for col in range(cols): 
-                tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
-                if not os.path.exists(tilename):
-                    tile = dz.get_tile(level, address=(col, row)) 
-                    # only store tile if there is enough amount of information, i.e. < 50 % background and the tile size is alright
-                    avg_bkg = _get_amount_of_background(tile)
-                    if avg_bkg <= 0.5 and tile.size[0] == 512 and tile.size[1] == 512: 
-                        tile.save(tilename, quality=90)
+    level = dz.level_count-3 # take third highest level 
+    print(level)
+    os.makedirs(output_dir_tiles) 
+    cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
+    for row in range(rows):
+        for col in range(cols): 
+            tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
+            if not os.path.exists(tilename):
+                tile = dz.get_tile(level, address=(col, row)) 
+                # only store tile if there is enough amount of information, i.e. < 50 % background and the tile size is alright
+                avg_bkg = _get_amount_of_background(tile)
+                if avg_bkg <= 0.5 and tile.size[0] == 128 and tile.size[1] == 128: 
+                    tile.save(tilename, quality=90)
 
     # After tiling delete the WSI to save disk space
     os.remove(path_to_slide)
