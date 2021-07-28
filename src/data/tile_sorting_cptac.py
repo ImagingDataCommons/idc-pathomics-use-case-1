@@ -10,7 +10,7 @@ from typing import List, Tuple, Dict, Any
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lusc':1}, 'luad_lusc': {'luad':0, 'lusc':1}, 'norm_luad_lusc': {'normal':0, 'luad':1, 'lusc':2}}
 
 
-def sort_tiles(tiles_folder: str, metadata_path: str, output_folder: str, sorting_option: str) -> None:
+def sort_tiles(tiles_folder: str, slides_metadata_path: str, output_folder: str, sorting_option: str) -> None:
     """ 
     Sort the tiles by one of the following three options while balancing classes to be distributed equally to training
     test and validation set. 
@@ -29,44 +29,20 @@ def sort_tiles(tiles_folder: str, metadata_path: str, output_folder: str, sortin
         None
     """
 
-    slide_folders = glob(os.path.join(tiles_folder, '*'))
-    print(slide_folders)
+    #slide_folders = glob(os.path.join(tiles_folder, '*'))
+    #print(slide_folders)
 
-    if not json_file.endswith('.csv'):
+    if not slides_metadata_path.endswith('.csv'):
         raise ValueError('Please provide a metadata file in CSV format.') 
     else: 
-        slides_metadata = pd.read_csv(metadata_path)
+        slides_metadata = pd.read_csv(slides_metadata_path)
     
     classes = _get_classes(sorting_option)
     
-    patient_meta_path = os.path.join(output_folder, 'patient_meta.csv')
-    slides_meta_path = os.path.join(output_folder, 'slides_meta.csv')
-    patient_meta = _get_patient_meta(patient_meta_path, slide_folders, json_metadata)
-    slides_meta = _get_slides_meta(slides_meta_path, slide_folders, json_metadata)     
-    
-    patient_to_category = _assign_patients_to_category(patient_meta, classes) 
+    patient_metadata_path = os.path.join(output_folder, 'patient_metadata.csv')
+    patient_metadata = _get_patient_meta(patient_metadata_path, slides_metadata, tiles_folder)
+    patient_to_category = _assign_patients_to_category(patient_metadata, classes) 
     _write_csv_files(slide_folders, output_folder, patient_to_category, slides_meta, classes, sorting_option)
-
-
-def _load_required_metadata_as_dict(json_file: str) -> Dict[str, Dict]:
-    json_metadata = defaultdict(dict)
-    with open(json_file) as json_file: 
-        json_data = json.load(json_file)
-        for jd in json_data: 
-            json_metadata = _extract_metadata_per_slide(jd, json_metadata)
-    return json_metadata
-
-
-def _extract_metadata_per_slide(dict_per_patient: Dict, json_metadata: Dict) -> Dict:
-    for specimen in dict_per_patient['specimens']:
-        try: 
-            slide_id = specimen['slide_id']
-            json_metadata[slide_id]['case_id'] = dict_per_patient['case_id']
-            json_metadata[slide_id]['tumor_code'] = dict_per_patient['tumor_code']
-            json_metadata[slide_id]['tissue_type'] = specimen['tissue_type']
-        except: 
-            continue
-    return json_metadata
 
 
 def _get_classes(sorting_option: str) -> Dict[str, int]:
@@ -76,84 +52,46 @@ def _get_classes(sorting_option: str) -> Dict[str, int]:
         raise ValueError('Please specify a valid sorting option.')
 
 
-def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_metadata: Dict) -> pd.DataFrame: 
+def _get_patient_meta(patient_metadata_path: str, slides_metadata: pd.DataFrame, tiles_folder: str) -> pd.DataFrame: 
     # load or generate internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
-    if os.path.isfile(patient_meta_path): 
-        patient_meta = pd.read_csv(patient_meta_path)
+    if os.path.isfile(patient_metadata_path): 
+        patient_meta = pd.read_csv(patient_metadata_path)
     else: 
-        patient_meta = _generate_patient_meta(slide_folders, json_metadata)
-        patient_meta.to_csv(patient_meta_path, index=False)
+        patient_meta = _generate_patient_meta(slides_metadata, tiles_folder)
+        patient_meta.to_csv(patient_metadata_path, index=False)
     return patient_meta
 
 
-def _generate_patient_meta(slide_folders: str, json_data: Dict[Any, Any]) -> pd.DataFrame:
+def _generate_patient_meta(slides_metadata: pd.DataFrame, tiles_folder: str) -> pd.DataFrame:
     patient_meta = defaultdict(lambda: [0, 0, None]) # store nr_tiles_total, nr_tiles_cancer and cancer type per patient
 
-    for slide_folder in slide_folders:
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data)
-        if patientID not in patient_meta:
-            patient_cancer_type = _extract_patient_cancer_type(metadata) 
-            patient_meta[patientID][2] = patient_cancer_type
-
-        patient_meta[patientID][0] += nr_tiles 
-        if _is_cancer_slide(metadata):
-            patient_meta[patientID][1] += nr_tiles
+    for _, row in slides_metadata.iterrows():
+        slide_id, patient_id = row['slide_id'], row['patient_id']
+        patient_cancer_type, slide_tissue_type = row['tumor_subtype'], row['tissue_type']
+        nr_tiles = _get_number_of_tiles(slide_id, tiles_folder)
+        
+        if patient_id not in patient_meta:
+            patient_meta[patient_id][2] = patient_cancer_type
+        if slide_tissue_type == 'tumor':
+            patient_meta[patient_id][1] += nr_tiles
+        patient_meta[patient_id][0] += nr_tiles 
     
     return _convert_to_dataframe(patient_meta)
 
 
-def _get_slides_meta(slides_meta_path: str, slide_folders: str, json_metadata: Dict) -> Dict[str, str]:
-    if os.path.isfile(slides_meta_path): 
-        with open(slides_meta_path, 'r') as slides_meta_file: 
-            slides_meta = json.loads(slides_meta_file.read())
-    else:
-        slides_meta = _generate_slides_meta(slide_folders, json_metadata)
-        with open(slides_meta_path, 'w') as slides_meta_file:
-            json.dump(slides_meta, slides_meta_file)
-    return slides_meta
-
-
-def _generate_slides_meta(slide_folders: str, json_data: Dict[Any, Any], magnification: float) -> Dict[str, str]:
-    slides_meta = defaultdict(lambda: None)
-    for slide_folder in slide_folders:
-        slide_id = slide_folder.split('/')[-1].replace('_files', '')
-        metadata, nr_tiles, patientID = _get_info_about_slide(slide_folder, json_data, magnification)
-        if _is_cancer_slide(metadata):
-            slide_class = _extract_patient_cancer_type(metadata) 
-        else: 
-            slide_class = 'normal'
-        slides_meta[slide_id] = slide_class
-    return slides_meta
-
-
-def _get_info_about_slide(slide_folder: str, json_data: Dict[Any, Any], magnification: float) -> Tuple[Dict[Any,Any], int, str]:
-    slide_id = slide_folder.split('/')[-1].replace('_files', '')
-    metadata = json_data[slide_id] 
-    nr_tiles = len([x for x in os.listdir(os.path.join(slide_folder, str(magnification))) if x.endswith('.jpeg')])
-    patientID = slide_id[:12]
-    return metadata, nr_tiles, patientID
-
-
-def _extract_patient_cancer_type(metadata: Dict[Any, Any]) -> str:
-    subtype = metadata['cases'][0]['project']['project_id'][5:]
-    return subtype.lower()
-
-
-def _is_cancer_slide(metadata: Dict[Any, Any]) -> bool:
-    sample_type = metadata['cases'][0]['samples'][0]['sample_type']
-    if 'normal' in sample_type.lower():
-        return False
-    return True
+def _get_number_of_tiles(slide_id: str, tiles_folder: str) -> int:
+    tiles_folder_of_slide = os.path.join(tiles_folder, slide_id)
+    nr_tiles = len([x for x in os.listdir(tiles_folder_of_slide) if x.endswith('.jpeg')])
+    return nr_tiles
 
 
 def _convert_to_dataframe(patient_meta: Dict[str, list]) -> pd.DataFrame: 
-    # TODO sort the dataframe?
     patient_meta = pd.DataFrame.from_dict(patient_meta, orient='index', columns=['nr_tiles_total', 'nr_tiles_cancer', 'cancer_subtype']).reset_index()
     patient_meta.rename({'index':'patientID'}, axis='columns', inplace=True)
     return patient_meta
 
 
-def _assign_patients_to_category(patient_meta: pd.DataFrame, classes: Dict[str, int]) -> Dict[str, str]:
+def _assign_patients_to_category(patient_metadata: pd.DataFrame, classes: Dict[str, int]) -> Dict[str, str]:
     # Assign patients to a category (training, validation, test) separately per patient subtype 
     patient_to_category = dict() 
     for c_type in ['luad', 'lusc']:  
