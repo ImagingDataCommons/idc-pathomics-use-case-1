@@ -52,7 +52,7 @@ def _get_classes(sorting_option: str) -> Dict[str, int]:
 
 
 def _get_patient_meta(patient_meta_path: str, slide_folders: str, json_file: str, magnification: float) -> pd.DataFrame: 
-    # load or generate internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
+    # load or generate internally used dataframe in the format: patientID | nr_tiles | cancer subtype (LUSC, LUAD)
     if os.path.isfile(patient_meta_path): 
         patient_meta = pd.read_csv(patient_meta_path)
     else: 

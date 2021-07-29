@@ -7,7 +7,7 @@ import pandas as pd
 from typing import List, Tuple, Dict, Any
 
 
-SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lusc':1}, 'luad_lusc': {'luad':0, 'lusc':1}, 'norm_luad_lusc': {'normal':0, 'luad':1, 'lusc':2}}
+SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lscc':1}, 'luad_lscc': {'luad':0, 'lscc':1}, 'norm_luad_lscc': {'normal':0, 'luad':1, 'lscc':2}}
 
 
 def sort_tiles(tiles_folder: str, slides_metadata_path: str, output_folder: str, sorting_option: str) -> None:
@@ -50,7 +50,7 @@ def _get_classes(sorting_option: str) -> Dict[str, int]:
 
 
 def _get_patient_meta(patient_metadata_path: str, slides_metadata: pd.DataFrame, tiles_folder: str) -> pd.DataFrame: 
-    # load or generate internally used dataframe in the format: patientID | nr_tiles | class (normal, LUSC, LUAD)
+    # load or generate internally used dataframe in the format: patientID | nr_tiles | cancer subtype (LUSC, LUAD)
     if os.path.isfile(patient_metadata_path): 
         patient_meta = pd.read_csv(patient_metadata_path)
     else: 
@@ -64,12 +64,12 @@ def _generate_patient_meta(slides_metadata: pd.DataFrame, tiles_folder: str) -> 
 
     for _, row in slides_metadata.iterrows():
         slide_id, patient_id = row['slide_id'], row['patient_id']
-        patient_cancer_type, slide_tissue_type = row['cancer_subtype'], row['tissue_type']
+        patient_cancer_type, tissue_type = row['cancer_subtype'], row['tissue_type']
         nr_tiles = _get_number_of_tiles(slide_id, tiles_folder)
         
         if patient_id not in patient_meta:
             patient_meta[patient_id][2] = patient_cancer_type
-        if slide_tissue_type == 'tumor':
+        if tissue_type == 'tumor':
             patient_meta[patient_id][1] += nr_tiles
         patient_meta[patient_id][0] += nr_tiles 
     
@@ -78,7 +78,10 @@ def _generate_patient_meta(slides_metadata: pd.DataFrame, tiles_folder: str) -> 
 
 def _get_number_of_tiles(slide_id: str, tiles_folder: str) -> int:
     tiles_folder_of_slide = os.path.join(tiles_folder, slide_id)
-    nr_tiles = len([x for x in os.listdir(tiles_folder_of_slide) if x.endswith('.jpeg')])
+    try: 
+        nr_tiles = len([x for x in os.listdir(tiles_folder_of_slide) if x.endswith('.jpeg')])
+    except: 
+        nr_tiles = 0
     return nr_tiles
 
 
@@ -92,7 +95,7 @@ def _assign_patients_to_category(patient_metadata: pd.DataFrame, classes: Dict[s
     # Assign patients to a category (training, validation, test) separately per patient subtype 
     patient_to_category = dict() 
     for c_type in ['luad', 'lscc']:  
-        patient_meta_c = patient_metadata[patient_metadata['cancer_subtype'].lower() == c_type] 
+        patient_meta_c = patient_metadata[patient_metadata['cancer_subtype'] == c_type] 
         _assign_patients(patient_meta_c, patient_to_category, classes)
     return patient_to_category
 
@@ -107,7 +110,7 @@ def _assign_patients(patient_metadata: pd.DataFrame, patient_to_category: Dict[s
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
     nr_tiles_to_valid = int(0.15 * nr_all_tiles)
 
-    for i, row in patient_metadata.iterrows():
+    for _, row in patient_metadata.iterrows():
         patient_id, nr_tiles_patient = row['patient_id'], row[tiles_to_consider]
 
         # Assign patient to the test set -> if test is full,  assign to validation -> if validation is full, assign to training 
@@ -120,7 +123,6 @@ def _assign_patients(patient_metadata: pd.DataFrame, patient_to_category: Dict[s
         else: 
             category = 'train'
         patient_to_category[patient_id] = category
-
     return patient_to_category
 
 
@@ -141,12 +143,12 @@ def _write_csv_files(tiles_folder: str, output_folder: str, patient_to_category:
             _write_info(slide_folder, output_csv, output_folder, patient_to_category, slides_metadata, classes)
             
 
-def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_metadata: Dict[str, str], classes: Dict[str, int]) -> None:
+def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_metadata: pd.DataFrame, classes: Dict[str, int]) -> None:
     slide_id = slide_folder.split('/')[-1]
     patient_id = slides_metadata[slides_metadata['slide_id'] == slide_id]['patient_id'].item()
     if patient_id in patient_to_category: 
         category = patient_to_category[patient_id]
-        slide_tissue_type = slides_metadata[slides_metadata['slide_id'] == slide_id]['tissue_type'].item()
+        slide_tissue_type = _get_slide_tissue_type(slide_id, slides_metadata)
         try: 
             slide_class = str(classes[slide_tissue_type]) 
         except: # this skips 'normal' slides in the second sorting option that only considers luad vs. lusc slides
@@ -157,3 +159,11 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
         for tile in tiles:    
             output_csv[category].write(','.join([tile, slide_class]))
             output_csv[category].write('\n')
+
+def _get_slide_tissue_type(slide_id: str, slides_metadata: pd.DataFrame) -> str:
+    cancer_subtype = slides_metadata[slides_metadata['slide_id'] == slide_id]['cancer_subtype'].item()
+    tissue_type = slides_metadata[slides_metadata['slide_id'] == slide_id]['tissue_type'].item()
+    if tissue_type == 'normal':
+        return tissue_type
+    else: 
+        return cancer_subtype
