@@ -19,7 +19,8 @@ class DataPoint:
         return self.reference_value
 
     def get_slide_id(self) -> str:
-        return self.patch_path.split(os.sep)[-3][:-6]
+        return self.patch_path.split(os.sep)[-2]
+        # TCGA: return self.patch_path.split(os.sep)[-3][:-6]
     
     def get_position(self) -> List[int]:
         filename = os.path.split(self.patch_path)[1]
