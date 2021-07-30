@@ -45,10 +45,14 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
-    slide = open_slide(path_to_slide)  
-    #dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
-    dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
 
+    try: 
+        slide = open_slide(path_to_slide)  
+        #dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
+        dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
+    except: 
+        print('Some processing error for slide %s' %(slide_id))
+        return
 
     # Tiling 
     level = dz.level_count-3 # take third highest level 
