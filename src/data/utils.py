@@ -13,6 +13,7 @@ def attach_tissue_type_information(cohort_df: pd.DataFrame, tissue_type_data: pd
     complete_df = _add_column_to_dataframe(cohort_df, tissue_types)
     
     # Replace certain column values for clarity
+    complete_df.rename(columns={'dataset': 'cancer_subtype'}, inplace=True)
     complete_df.replace({'cancer_subtype': 'CPTAC-LSCC'}, 'lscc', inplace=True)
     complete_df.replace({'cancer_subtype': 'CPTAC-LUAD'}, 'luad', inplace=True)
     complete_df.replace({'tissue_type': 'normal_tissue'}, 'normal', inplace=True)
