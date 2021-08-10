@@ -50,10 +50,9 @@ class BaseModel:
 
         if validation_dataset:
             validation_generator = validation_dataset.get_generator(
-                batch_size=1,
-                infinite=True
-            )
-            validation_steps = len(validation_dataset)
+                batch_size=batch_size,
+                infinite=True)
+            validation_steps = len(validation_dataset)//batch_size
         else:
             validation_generator = None
             validation_steps = None
