@@ -4,7 +4,7 @@ from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from PIL.Image import Image
 from typing import List, Union
 
-# Path structure is /some/dirs/[SVS-FILENAME-WITHOUT-EXTENSION]_files/magnification/[X]_[Y].jpeg
+# Path structure is /some/dirs/[SVS-FILENAME-WITHOUT-EXTENSION]_files/magnification/[X]_[Y].jpeg <-- update
 
 class DataPoint:
     def __init__(self, patch_path: str, reference_value: Union[int, List[int]]) -> None:

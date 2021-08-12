@@ -50,13 +50,12 @@ class ROCAnalysis():
 
         if self.num_classes == 2: 
             prediction = np.reshape(prediction, (1, -1)).squeeze()
-            print('hey', prediction.shape, reference.shape)
             auc[1] = skm.roc_auc_score(reference, prediction)
             ci[1] = self._get_confidence_interval_by_bootstrapping(reference, prediction)
 
         # Multi-class and multi-class multi-label data: Calculate AUC for each class separately      
         else: 
-            reference = self._binarize_labels(reference)         
+            reference = self._binarize_labels(reference)  
             auc_values = skm.roc_auc_score(reference, prediction, average=None)
             for i in range(self.num_classes):
                 auc[i] = auc_values[i]

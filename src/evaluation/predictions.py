@@ -14,7 +14,8 @@ class Predictions():
             predictions_dict = {}
             for i, data_point in enumerate(dataset.data_points):
                 slide_id = data_point.get_slide_id()
-                if slide_id not in predictions_dict:
+                print(i, slide_id)
+                if slide_id not in predictions_dict: # diese Zeile ist doch ueberfluessig oder???
                     predictions_dict[i] = {
                         'slide_id': slide_id,
                         'tile_position': data_point.get_position(),
