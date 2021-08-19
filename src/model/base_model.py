@@ -5,13 +5,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 from tensorflow.keras.models import load_model
-from typing import Dict
+from typing import Dict, List
 from wandb.keras import WandbCallback
 
 from data.data_set import Dataset
 from data.data_point import DataPoint
-
-
 
 class BaseModel:
     def __init__(self, model=None, *args, **kwargs):
@@ -62,7 +60,7 @@ class BaseModel:
             save_weights_only=False, 
             monitor='val_loss', 
             mode='min',
-            save_best_only=False
+            save_best_only=True
         )
 
         csv_logger_callback = CSVLogger(
@@ -90,13 +88,23 @@ class BaseModel:
             class_weight=class_weights
         )
 
-    def make_prediction(self, data_point: DataPoint) -> np.ndarray:
-        # add batch dimension
-        patch = data_point.get_patch()[np.newaxis, ...]
+    def make_single_prediction(self, data_point: DataPoint) -> np.ndarray:
+        patch = data_point.get_patch()[np.newaxis, ...]  # add batch dimension
         prediction = self.model(patch)
-        # remove batch dimension
-        return prediction[0, ...]
+        return prediction[0, ...] # remove batch dimension
     
+    def make_batch_prediction(self, data_points: List[DataPoint]) -> np.ndarray: 
+        # create batch
+        tile_size = self.model.layers[0].input_shape[0][1]
+        required_dtype = data_points[0].get_patch().dtype
+        batch = np.empty((0, tile_size, tile_size, 3), required_dtype)
+        for data_point in data_points:
+            patch = data_point.get_patch()[np.newaxis, ...] # add batch dimension
+            batch = np.append(batch, patch, axis=0)
+        # make prediction 
+        prediction = self.model(batch)
+        return prediction
+
     def save(self, output_dir: str) -> None:
         self.model.save(
             os.path.join(output_dir, 'trained_model'),

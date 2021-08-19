@@ -3,17 +3,17 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 import seaborn as sns
+sns.set_theme()
 from collections import defaultdict
 import sklearn.metrics as skm
 from sklearn.preprocessing import label_binarize
 from sklearn.preprocessing import MultiLabelBinarizer
 from scipy import interp
-from itertools import chain
+from copy import copy
 from typing import Tuple, List, Dict
-pd.set_option("display.max_columns", None)
-
 
 from evaluation.predictions import Predictions 
+
 
 EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 1:'LUSC'}, 'norm_luad_lusc': {0:'Normal', 1:'LUAD', 2:'LUSC'}, 
                'mutations': {0: 'STK11', 1: 'EGFR', 2: 'SETBP1', 3: 'TP53', 4: 'FAT1', 5: 'KRAS', 6: 'KEAP1', 7: 'LRP1B', 8: 'FAT4', 9: 'NF1'}, 
@@ -24,7 +24,7 @@ class ROCAnalysis():
 
     def __init__(self, predictions: Predictions, experiment: str) -> None:
         self.experiment = experiment
-        self.num_classes = len(EXPERIMENTS[experiment])
+        self.num_classes = len(EXPERIMENTS[self.experiment])
         self._run_roc_analysis(predictions)
         
 
@@ -55,7 +55,7 @@ class ROCAnalysis():
 
         # Multi-class and multi-class multi-label data: Calculate AUC for each class separately      
         else: 
-            reference = self._binarize_labels(reference)  
+            reference = self._binarize_labels(reference)              
             auc_values = skm.roc_auc_score(reference, prediction, average=None)
             for i in range(self.num_classes):
                 auc[i] = auc_values[i]
@@ -112,7 +112,6 @@ class ROCAnalysis():
         result_df = pd.DataFrame(results_per_slide).T
         result_df.reset_index(inplace=True)
         result_df.rename({'index':'slide_id'}, axis='columns', inplace=True)
-        print(result_df)
         return result_df
 
 
@@ -194,8 +193,8 @@ class ROCAnalysis():
         return all_fpr, mean_tpr, auc
 
 
-    def plot(self, output_folder) -> None:
-        colors = ['orange', 'aqua', 'red', 'yellowgreen', 'yellow', 'magenta', 'royalblue', 'green', 'burlywood', 'grey']
+    def plot_and_save(self, output_folder) -> None:
+        colors = ['g', 'b', 'r', 'olive', 'gray', 'orange', 'magenta', 'royalblue', 'aqua', 'burlywood', 'yellow']
 
         if self.num_classes == 2: 
             self._plot_bisector()
@@ -206,36 +205,40 @@ class ROCAnalysis():
                     self.tpr[avg_method],
                     color=colors[i],
                     linewidth=2,
-                    label=label
+                    label=label, 
+                    alpha=0.3
                 )
             self._format_and_save_plot()
             plt.savefig(os.path.join(output_folder, 'roc_analysis.png'))
+            plt.show()
             plt.close()
 
         # Plot ROC curves separately for the two averaging methods if num_classes > 2
         else: 
+            fig, axes = plt.subplots(1,2, figsize=(14,4))
             for i, avg_method in enumerate(self.fpr):
-                self._plot_bisector()
+                self._plot_bisector(axes[i])
                 for idx, key in enumerate(self.fpr[avg_method]): 
                     if key=='macro': # to be removed as soon as missing macro computation is added 
                         continue 
-                    class_to_str_mapping = EXPERIMENTS[self.experiment]
+                    class_to_str_mapping = copy(EXPERIMENTS[self.experiment])
                     class_to_str_mapping['micro'] = 'Micro'
                     class_to_str_mapping['macro'] = 'Macro'
                     label='%s (AUC = %0.3f)' % (class_to_str_mapping[key], self.auc[avg_method][key])
-                    plt.plot(
+                    axes[i].plot(
                         self.fpr[avg_method][key],
                         self.tpr[avg_method][key],
                         color=colors[idx],
                         linewidth=2,
                         label=label
                     )
-                self._format_and_save_plot('ROC (%s)' % (avg_method))
-                plt.savefig(os.path.join(output_folder, 'roc_analysis_%s.png' %(avg_method)))
-                plt.close()
+                self._format_and_save_plot(axes[i], 'ROC (%s)' % (avg_method))
+            fig.savefig(os.path.join(output_folder, 'roc_analysis.png'))
+            plt.show()
+            plt.close()
 
-    def _plot_bisector(self):
-        plt.plot(
+    def _plot_bisector(self, axis):
+        axis.plot(
             [0, 1],
             [0, 1],
             color='black',
@@ -243,17 +246,17 @@ class ROCAnalysis():
             linestyle='--'
         )
 
-    def _format_and_save_plot(self, title = 'ROC'):
-        plt.title(title)
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.0])
-        plt.xlabel('False positive rate')
-        plt.ylabel('True positive rate')
-        plt.legend(loc='lower right')
+    def _format_and_save_plot(self, axis, title = 'ROC'):
+        axis.set_title(title)
+        axis.set_xlim([0.0, 1.0])
+        axis.set_ylim([0.0, 1.0])
+        axis.set_xlabel('False positive rate')
+        axis.set_ylabel('True positive rate')
+        axis.legend(loc='lower right')
 
 
     def print_and_save_tabluar_results(self, output_path):
-        class_to_str_mapping = EXPERIMENTS[self.experiment]
+        class_to_str_mapping = copy(EXPERIMENTS[self.experiment])
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'
         if self.num_classes == 2: 
@@ -271,10 +274,9 @@ class ROCAnalysis():
                             ('slide-based', 'average probability', 'confidence'): self.ci['average_probability'],
                             ('slide-based', 'percentage positive', 'auc'): self.auc['percentage_positive'], 
                             ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
-            print(results_dict)
             results = pd.DataFrame(results_dict, dtype=object)
             results.rename(index=class_to_str_mapping, inplace=True)
-        print(results)
+        display(results)
         html = results.to_html()
         text_file = open(output_path, 'w')
         text_file.write(html)

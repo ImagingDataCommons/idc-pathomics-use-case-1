@@ -35,10 +35,8 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
 
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
-    if os.path.exists(output_dir_tiles):
-        print("Slide %s already tiled" % slide_id)
-        return 
     
+
     # Download slide in DICOM format using gsutil
     cmd = ['gsutil -u {id}  cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
     subprocess.run(cmd, shell=True)
@@ -48,15 +46,20 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
 
     try: 
         slide = open_slide(path_to_slide)  
-        #dz = DeepZoomGenerator(slide, tile_size=512, overlap=0, limit_bounds=True)
-        dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
+        #dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
+        thumbnail = slide.get_thumbnail((300,300))
+        thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
+        os.remove(path_to_slide)
     except: 
         print('Some processing error for slide %s' %(slide_id))
         return
 
+    if os.path.exists(output_dir_tiles):
+        print("Slide %s already tiled" % slide_id)
+        return 
+    
     # Tiling 
     level = dz.level_count-3 # take third highest level 
-    print(level)
     os.makedirs(output_dir_tiles) 
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
     for row in range(rows):
