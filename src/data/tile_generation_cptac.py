@@ -43,6 +43,9 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
+    if os.path.isfile(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png')):
+        print("Slide %s already downloaded" % slide_id)
+        return
 
     try: 
         slide = open_slide(path_to_slide)  

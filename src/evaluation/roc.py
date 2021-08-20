@@ -196,8 +196,9 @@ class ROCAnalysis():
     def plot_and_save(self, output_folder) -> None:
         colors = ['g', 'b', 'r', 'olive', 'gray', 'orange', 'magenta', 'royalblue', 'aqua', 'burlywood', 'yellow']
 
-        if self.num_classes == 2: 
-            self._plot_bisector()
+        if self.num_classes == 2:
+            fig = plt.figure(fisize=(7,4)) 
+            self._plot_bisector(fig)
             for i, avg_method in enumerate(self.fpr):
                 label='%s (AUC = %0.3f)' % (avg_method, self.auc[avg_method])
                 plt.plot(
@@ -208,7 +209,7 @@ class ROCAnalysis():
                     label=label, 
                     alpha=0.3
                 )
-            self._format_and_save_plot()
+            self._format_and_save_plot(fig, 'Slide-based ROC analysis')
             plt.savefig(os.path.join(output_folder, 'roc_analysis.png'))
             plt.show()
             plt.close()
@@ -216,6 +217,7 @@ class ROCAnalysis():
         # Plot ROC curves separately for the two averaging methods if num_classes > 2
         else: 
             fig, axes = plt.subplots(1,2, figsize=(14,4))
+            fig.suptitle('Figure 4: Slide-based ROC analysis')
             for i, avg_method in enumerate(self.fpr):
                 self._plot_bisector(axes[i])
                 for idx, key in enumerate(self.fpr[avg_method]): 
@@ -246,7 +248,7 @@ class ROCAnalysis():
             linestyle='--'
         )
 
-    def _format_and_save_plot(self, axis, title = 'ROC'):
+    def _format_and_save_plot(self, axis, title):
         axis.set_title(title)
         axis.set_xlim([0.0, 1.0])
         axis.set_ylim([0.0, 1.0])

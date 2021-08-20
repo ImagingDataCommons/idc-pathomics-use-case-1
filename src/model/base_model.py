@@ -6,7 +6,6 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 from tensorflow.keras.models import load_model
 from typing import Dict, List
-from wandb.keras import WandbCallback
 
 from data.data_set import Dataset
 from data.data_point import DataPoint
@@ -66,8 +65,6 @@ class BaseModel:
         csv_logger_callback = CSVLogger(
             filename=os.path.join(output_path, 'train.csv')
         )
-
-        wandb_logger = WandbCallback(monitor="val_loss")
 
         configs_to_store = self.model.optimizer.get_config()
         configs_to_store['batch_size'] = batch_size
