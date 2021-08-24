@@ -278,6 +278,7 @@ class ROCAnalysis():
                             ('slide-based', 'percentage positive', 'confidence'): self.ci['percentage_positive']}
             results = pd.DataFrame(results_dict, dtype=object)
             results.rename(index=class_to_str_mapping, inplace=True)
+            results.drop(['Macro'], inplace=True) # remove macro averaging for now
         display(results)
         html = results.to_html()
         text_file = open(output_path, 'w')

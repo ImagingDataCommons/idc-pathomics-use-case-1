@@ -36,6 +36,9 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
     
+    if os.path.isfile(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png')):
+        print("Slide %s already downloaded" % slide_id)
+        return
 
     # Download slide in DICOM format using gsutil
     cmd = ['gsutil -u {id}  cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
@@ -43,9 +46,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
-    if os.path.isfile(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png')):
-        print("Slide %s already downloaded" % slide_id)
-        return
+    
 
     try: 
         slide = open_slide(path_to_slide)  
