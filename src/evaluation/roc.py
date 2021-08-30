@@ -216,7 +216,7 @@ class ROCAnalysis():
 
         # Plot ROC curves separately for the two averaging methods if num_classes > 2
         else: 
-            fig, axes = plt.subplots(1,2, figsize=(14,4))
+            fig, axes = plt.subplots(1,2, figsize=(10,4))
             fig.suptitle('Figure 4: Slide-based ROC analysis')
             for i, avg_method in enumerate(self.fpr):
                 self._plot_bisector(axes[i])
@@ -236,6 +236,7 @@ class ROCAnalysis():
                     )
                 self._format_and_save_plot(axes[i], 'ROC (%s)' % (avg_method))
             fig.savefig(os.path.join(output_folder, 'roc_analysis.png'))
+            plt.tight_layout()
             plt.show()
             plt.close()
 
@@ -257,7 +258,7 @@ class ROCAnalysis():
         axis.legend(loc='lower right')
 
 
-    def print_and_save_tabluar_results(self, output_path):
+    def print_and_save_tabluar_results_with_ci(self, output_path):
         class_to_str_mapping = copy(EXPERIMENTS[self.experiment])
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'
@@ -279,6 +280,24 @@ class ROCAnalysis():
             results = pd.DataFrame(results_dict, dtype=object)
             results.rename(index=class_to_str_mapping, inplace=True)
             results.drop(['Macro'], inplace=True) # remove macro averaging for now
+        display(results)
+        html = results.to_html()
+        text_file = open(output_path, 'w')
+        text_file.write(html)
+        text_file.close()
+
+
+    def print_and_save_tabluar_results(self, output_path):
+        class_to_str_mapping = copy(EXPERIMENTS[self.experiment])
+        class_to_str_mapping['micro'] = 'Micro'
+        class_to_str_mapping['macro'] = 'Macro'
+        results_dict = {('tile-based AUC', ''): self.tile_auc, 
+                        ('slide-based AUC', 'average probability'): self.auc['average_probability'], 
+                        ('slide-based AUC', 'percentage positive'): self.auc['percentage_positive']}
+        results = pd.DataFrame(results_dict, dtype=float)
+        results.rename(index=class_to_str_mapping, inplace=True)
+        results.drop(['Macro'], inplace=True) # remove macro averaging for now
+        results = results.round(decimals=3)
         display(results)
         html = results.to_html()
         text_file = open(output_path, 'w')
