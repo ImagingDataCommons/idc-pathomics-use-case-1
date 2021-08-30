@@ -82,8 +82,8 @@ def _get_available_magnifications(slide: openslide.OpenSlide) -> Tuple[float]:
 
 
 def _get_amount_of_background(tile: Image) -> float:
-
+    
     grey = tile.convert(mode='L') 
-    bw = grey.point(lambda x: 0 if x < 220 else 1, mode='F') 
-    avg_bkg = np.average(np.array(np.asarray(bw)))
-    return avg_bkg   
+    thresholded = grey.point(lambda x: 0 if x < 220 else 1, mode='F') 
+    avg_bkg = np.average(np.array(thresholded))
+    return avg_bkg  

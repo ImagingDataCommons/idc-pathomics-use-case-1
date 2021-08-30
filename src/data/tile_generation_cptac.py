@@ -88,5 +88,5 @@ def _get_path_to_slide_from_gcs_url(gcs_url, slides_folder):
 def _get_amount_of_background(tile: Image) -> float:
     grey = tile.convert(mode='L') 
     bw = grey.point(lambda x: 0 if x < 220 else 1, mode='F') 
-    avg_bkg = np.average(np.array(np.asarray(bw)))
+    avg_bkg = np.average(np.array(bw))
     return avg_bkg   
