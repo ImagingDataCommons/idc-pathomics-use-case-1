@@ -10,7 +10,7 @@ from typing import List, Tuple, Dict, Any
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lscc':1}, 'luad_lscc': {'luad':0, 'lscc':1}, 'norm_luad_lscc': {'normal':0, 'luad':1, 'lscc':2}}
 
 
-def sort_tiles(tiles_folder: str, slides_metadata_path: str, output_folder: str, sorting_option: str) -> None:
+def sort_tiles(tiles_folder: str, slides_metadata_path: str, output_folder: str, sorting_option: str = 'norm_luad_lscc') -> None:
     """ 
     Sort the tiles by one of the following three options while balancing classes to be distributed equally to training
     test and validation set. 

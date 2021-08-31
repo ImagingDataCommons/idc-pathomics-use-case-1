@@ -22,7 +22,7 @@ EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 
 
 class ROCAnalysis():
 
-    def __init__(self, predictions: Predictions, experiment: str) -> None:
+    def __init__(self, predictions: Predictions, experiment: str = 'norm_luad_lusc') -> None:
         self.experiment = experiment
         self.num_classes = len(EXPERIMENTS[self.experiment])
         self._run_roc_analysis(predictions)
