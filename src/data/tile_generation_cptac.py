@@ -29,11 +29,15 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
         gcs_url = row['gcs_url']
-        _generate_tiles_for_slide(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
+        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
+
 
 # Workaround for a potential memory leak in Openslide 
-def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, google_cloud_project_id: str) -> None:
-    pass 
+def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
+    p = Process(target=_generate_tiles_for_slide, args=(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)) 
+    p.start()
+    p.join()
+
 
 def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
 
