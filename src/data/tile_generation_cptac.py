@@ -8,6 +8,7 @@ from openslide.deepzoom import DeepZoomGenerator
 from PIL.Image import Image
 import subprocess
 from multiprocessing import Process
+import datetime
 
 
 def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
@@ -49,6 +50,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
         return
     
     # Download slide in DICOM format using gsutil
+    print('Bottleneck downloading slide?', datetime.now())
     cmd = ['gsutil -u {id}  cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
     subprocess.run(cmd, shell=True)
 
@@ -59,6 +61,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
         slide = open_slide(path_to_slide)  
         thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
         thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
+        print('Bottleneck generation DZ?', datetime.now())
         dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
     except: 
         print('Some processing error for slide %s' %(slide_id))
@@ -67,8 +70,10 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     # Tiling 
     level = dz.level_count-3 # take third highest level 
     os.makedirs(output_dir_tiles) 
+    print('Bottleneck get level_tiles?', datetime.now())
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
     counter = 0 # use counter to only save every x-th tile
+    print('Bottleneck iteration through tiles?', datetime.now())
     for row in range(rows):
         for col in range(cols): 
             counter += 1
@@ -83,6 +88,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
                     tile.save(tilename, quality=90)
 
     # After tiling delete the WSI to save disk space
+    print('Bottleneck remove slide',datetime.now())
     os.remove(path_to_slide)
 
 
