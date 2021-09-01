@@ -42,7 +42,7 @@ def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_
 
 
 def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
-
+    print('start next')
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
     if os.path.exists(output_dir_tiles):
