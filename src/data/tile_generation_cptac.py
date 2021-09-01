@@ -8,7 +8,7 @@ from openslide.deepzoom import DeepZoomGenerator
 from PIL.Image import Image
 import subprocess
 from multiprocessing import Process
-import datetime
+from datetime import datetime
 
 
 def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
