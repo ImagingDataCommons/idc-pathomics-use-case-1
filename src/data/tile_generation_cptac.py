@@ -6,9 +6,10 @@ from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
 from PIL.Image import Image
 import subprocess
+from multiprocessing import Process
 
 
-def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, google_cloud_project_id: str) -> None:
+def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
@@ -28,10 +29,13 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, g
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
         gcs_url = row['gcs_url']
-        _generate_tiles_for_slide(path_to_slide, slide_id, gcs_url, output_folder, google_cloud_project_id)
+        _generate_tiles_for_slide(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
 
+# Workaround for a potential memory leak in Openslide 
+def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, google_cloud_project_id: str) -> None:
+    pass 
 
-def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, google_cloud_project_id: str) -> None:
+def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
 
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
@@ -59,8 +63,12 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     level = dz.level_count-3 # take third highest level 
     os.makedirs(output_dir_tiles) 
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
+    counter = 0 # use counter to only save every x-th tile
     for row in range(rows):
         for col in range(cols): 
+            counter += 1
+            if not counter % save_every_xth_tile == 0:
+                pass
             tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
             if not os.path.exists(tilename):
                 tile = dz.get_tile(level, address=(col, row)) 
