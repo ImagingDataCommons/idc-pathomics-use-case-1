@@ -1,6 +1,7 @@
 import os
 from glob import glob 
 import numpy as np
+import openslide
 import pandas as pd
 from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
@@ -83,6 +84,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
 
     # After tiling delete the WSI to save disk space
     os.remove(path_to_slide)
+    reload(openslide)
 
 
 def _get_path_to_slide_from_gcs_url(gcs_url, slides_folder):
