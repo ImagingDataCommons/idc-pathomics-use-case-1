@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from data.data_set import Dataset
+from src.data.data_set import Dataset
 
 
 class Predictions():

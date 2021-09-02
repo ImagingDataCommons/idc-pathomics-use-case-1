@@ -5,7 +5,7 @@ import numpy as np
 from tensorflow.keras.utils import to_categorical
 from typing import Tuple, Generator
 
-from data.data_point import DataPoint
+from src.data.data_point import DataPoint
 
 
 class Dataset:

@@ -31,7 +31,7 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
         gcs_url = row['gcs_url']
-        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
+        _generate_tiles_for_slide(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
 
 
 # Workaround for a potential memory leak in Openslide 
@@ -58,6 +58,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     print('Processing: %s' %(slide_id))
 
     try: 
+        print('trying')
         slide = open_slide(path_to_slide)  
         thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
         thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))

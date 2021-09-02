@@ -12,7 +12,7 @@ from scipy import interp
 from copy import copy
 from typing import Tuple, List, Dict
 
-from evaluation.predictions import Predictions 
+from src.evaluation.predictions import Predictions 
 
 
 EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 1:'LUSC'}, 'norm_luad_lusc': {0:'Normal', 1:'LUAD', 2:'LUSC'}, 

@@ -7,8 +7,8 @@ from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 from tensorflow.keras.models import load_model
 from typing import Dict, List
 
-from data.data_set import Dataset
-from data.data_point import DataPoint
+from src.data.data_set import Dataset
+from src.data.data_point import DataPoint
 
 class BaseModel:
     def __init__(self, model=None, *args, **kwargs):
