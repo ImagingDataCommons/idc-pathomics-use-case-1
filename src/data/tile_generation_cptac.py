@@ -9,9 +9,10 @@ from PIL.Image import Image
 import subprocess
 from multiprocessing import Process
 from datetime import datetime
+from typing import List
 
 
-def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
+def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, get_thumbnail: List[str], google_cloud_project_id: str) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
@@ -31,17 +32,17 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
         gcs_url = row['gcs_url']
-        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
+        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, get_thumbnail, google_cloud_project_id)
 
 
 # Workaround for a potential memory leak in Openslide 
-def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
-    p = Process(target=_generate_tiles_for_slide, args=(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)) 
+def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, get_thumbnail: List[str], google_cloud_project_id: str) -> None:
+    p = Process(target=_generate_tiles_for_slide, args=(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, get_thumbnail, google_cloud_project_id)) 
     p.start()
     p.join()
 
 
-def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
+def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, get_thumbnail: List[str], google_cloud_project_id: str) -> None:
     print('start next')
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
@@ -57,21 +58,19 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     # Open slide and instantiate a DeepZoomGenerator for that slide
     print('Processing: %s' %(slide_id))
 
-    print('Trying to open', datetime.now())
-    slide = open_slide(path_to_slide)  
-    print('Trying to not get thumbnail', datetime.now())
-    
-    #thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
-    #thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
-    print('Bottleneck generation DZ?', datetime.now())
-    dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
-    level = dz.level_count-3 # take third highest level 
-    thumbnail = slide.read_region(location=(0,0), level=level, size=(300,300))
-    thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
-    #except: 
-    #    print('Some processing error for slide %s' %(slide_id))
-    #    os.remove(path_to_slide)
-    #    return 
+    try:
+        print('Trying to open', datetime.now())
+        slide = open_slide(path_to_slide)  
+        if slide_id in get_thumbnail: 
+            print('Trying get thumbnail', datetime.now())
+            thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
+            thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
+        print('Bottleneck generation DZ?', datetime.now())
+        dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
+    except: 
+        print('Some processing error for slide %s' %(slide_id))
+        os.remove(path_to_slide)
+        return 
     
     # Tiling 
     level = dz.level_count-3 # take third highest level 
