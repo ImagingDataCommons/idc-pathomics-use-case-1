@@ -78,7 +78,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     print('Bottleneck iteration through tiles?', datetime.now())
     
     tuples = [(row,col) for row in range(rows) for col in range(cols)]
-    tuples = tuples[::,save_every_xth_tile]
+    tuples = tuples[::save_every_xth_tile]
     for (row, col) in tuples: 
         tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
         if not os.path.exists(tilename):
