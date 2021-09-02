@@ -58,8 +58,9 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     print('Processing: %s' %(slide_id))
 
     try: 
-        print('trying')
+        print('Trying to open', datetime.now())
         slide = open_slide(path_to_slide)  
+        print('Trying to get thumbnail', datetime.now())
         thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
         thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
         print('Bottleneck generation DZ?', datetime.now())
