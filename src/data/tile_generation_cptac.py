@@ -51,7 +51,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     
     # Download slide in DICOM format using gsutil
     print('Bottleneck downloading slide?', datetime.now())
-    cmd = ['gsutil -u {id}  cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
+    cmd = ['gsutil -u {id} -m cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
     subprocess.run(cmd, shell=True)
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
@@ -61,10 +61,13 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
         print('Trying to open', datetime.now())
         slide = open_slide(path_to_slide)  
         print('Trying to not get thumbnail', datetime.now())
+        
         #thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
         #thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
         print('Bottleneck generation DZ?', datetime.now())
         dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
+        #level = dz.level_count-3 # take third highest level 
+        #thumbnail = slide.read_region(location=(0,0), level=level)
     except: 
         print('Some processing error for slide %s' %(slide_id))
         return 
@@ -87,19 +90,6 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
             avg_bkg = _get_amount_of_background(tile)
             if avg_bkg <= 0.5 and tile.size[0] == 128 and tile.size[1] == 128: 
                 tile.save(tilename, quality=90)
-
-    """for row in range(rows):
-        for col in range(cols): 
-            counter += 1
-            if not counter % save_every_xth_tile == 0:
-                pass
-            tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
-            if not os.path.exists(tilename):
-                tile = dz.get_tile(level, address=(col, row)) 
-                # only store tile if there is enough amount of information, i.e. < 50 % background and the tile size is alright
-                avg_bkg = _get_amount_of_background(tile)
-                if avg_bkg <= 0.5 and tile.size[0] == 128 and tile.size[1] == 128: 
-                    tile.save(tilename, quality=90)"""
 
     # After tiling delete the WSI to save disk space
     print('Bottleneck remove slide',datetime.now())
