@@ -51,7 +51,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     
     # Download slide in DICOM format using gsutil
     print('Bottleneck downloading slide?', datetime.now())
-    cmd = ['gsutil -u {id} -m cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
+    cmd = ['gsutil -u {id} cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
     subprocess.run(cmd, shell=True)
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
@@ -66,10 +66,12 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     print('Bottleneck generation DZ?', datetime.now())
     dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
     level = dz.level_count-3 # take third highest level 
+    print(slide.level_dimensions[level])
     thumbnail = slide.read_region(location=(0,0), level=level, size=slide.level_dimensions[level])
     thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
     #except: 
     #    print('Some processing error for slide %s' %(slide_id))
+    #    os.remove(path_to_slide)
     #    return 
     
     # Tiling 
@@ -77,7 +79,6 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     os.makedirs(output_dir_tiles) 
     print('Bottleneck get level_tiles?', datetime.now())
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
-    counter = 0 # use counter to only save every x-th tile
     print('Bottleneck iteration through tiles?', datetime.now())
     
     tuples = [(row,col) for row in range(rows) for col in range(cols)]
