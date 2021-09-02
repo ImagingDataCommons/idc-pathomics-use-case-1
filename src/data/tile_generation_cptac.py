@@ -66,8 +66,9 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
         #thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
         print('Bottleneck generation DZ?', datetime.now())
         dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
-        #level = dz.level_count-3 # take third highest level 
-        #thumbnail = slide.read_region(location=(0,0), level=level)
+        level = dz.level_count-3 # take third highest level 
+        thumbnail = slide.read_region(location=(0,0), level=level, size=slide.level_dimensions[level])
+        thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
     except: 
         print('Some processing error for slide %s' %(slide_id))
         return 
