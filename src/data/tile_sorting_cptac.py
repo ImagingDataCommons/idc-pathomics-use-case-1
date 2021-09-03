@@ -40,6 +40,7 @@ def sort_tiles(tiles_folder: str, slides_metadata_path: str, output_folder: str,
     patient_metadata = _get_patient_meta(patient_metadata_path, slides_metadata, tiles_folder)
     patient_to_category = _assign_patients_to_category(patient_metadata, classes) 
     _write_csv_files(tiles_folder, output_folder, patient_to_category, slides_metadata, classes, sorting_option)
+    _add_category_information_to_slide_metadata(slides_metadata, slides_metadata_path, patient_to_category)
 
 
 def _get_classes(sorting_option: str) -> Dict[str, int]:
@@ -126,7 +127,7 @@ def _assign_patients(patient_metadata: pd.DataFrame, patient_to_category: Dict[s
     return patient_to_category
 
 
-def _write_csv_files(tiles_folder: str, output_folder: str, patient_to_category: Dict[str, str], slides_metadata: Dict[str, str], classes: Dict[str, int], sorting_option: str) -> None:
+def _write_csv_files(tiles_folder: str, output_folder: str, patient_to_category: Dict[str, str], slides_metadata: pd.DataFrame, classes: Dict[str, int], sorting_option: str) -> None:
     path_train = os.path.join(output_folder, 'train_' + sorting_option  + '.csv')
     path_test = os.path.join(output_folder, 'test_' + sorting_option + '.csv')
     path_valid = os.path.join(output_folder, 'valid_' + sorting_option + '.csv')
@@ -141,7 +142,7 @@ def _write_csv_files(tiles_folder: str, output_folder: str, patient_to_category:
         slide_folders = glob(os.path.join(tiles_folder, '*'))
         for slide_folder in slide_folders:
             _write_info(slide_folder, output_csv, output_folder, patient_to_category, slides_metadata, classes)
-            
+        
 
 def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient_to_category: Dict[str, str], slides_metadata: pd.DataFrame, classes: Dict[str, int]) -> None:
     slide_id = slide_folder.split('/')[-1]
@@ -159,6 +160,17 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
         for tile in tiles:    
             output_csv[category].write(','.join([tile, slide_class]))
             output_csv[category].write('\n')
+
+
+def _add_category_information_to_slide_metadata(slides_metadata: pd.DataFrame, slides_metadata_path: str, patient_to_category: Dict[str, str]) -> None: 
+    slides_metadata['dataset'] = '' # initialize empty column to be filled with either train, valid or test 
+    for _, row in slides_metadata.iterrows():
+        slide_id, patient_id = row['slide_id'], row['patient_id']
+        if patient_id in patient_to_category:
+            category = patient_to_category[patient_id]
+            slides_metadata.loc[slides_metadata['slide_id'] == slide_id, 'dataset'] = category
+    slides_metadata.to_csv(slides_metadata_path)
+
 
 def _get_slide_tissue_type(slide_id: str, slides_metadata: pd.DataFrame) -> str:
     cancer_subtype = slides_metadata[slides_metadata['slide_id'] == slide_id]['cancer_subtype'].item()
