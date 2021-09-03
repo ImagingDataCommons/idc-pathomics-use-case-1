@@ -58,7 +58,7 @@ class Dataset:
                     elif self.num_classes == 10:
                         # generate k-hot-encoding for the reference
                         batch_y[batch_index] = self.to_k_hot_encoding(data_point)
-
+                print(batch_x, batch_y, [None])
                 yield batch_x, batch_y, [None]
             
             if not infinite:
