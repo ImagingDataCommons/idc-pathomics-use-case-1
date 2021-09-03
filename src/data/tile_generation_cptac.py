@@ -27,7 +27,6 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
         None
     """
 
-    print('Reading input data from %s' %(slides_folder))
     slides_metadata = pd.read_csv(metadata_path)
     for _, row in slides_metadata.iterrows():
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
@@ -56,7 +55,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     subprocess.run(cmd, shell=True)
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
-    print('Processing: %s - %s' %(slide_id, datetime.now()))
+    print('Processing slide %s - %s' %(slide_id, datetime.now()))
 
     try:
         slide = open_slide(path_to_slide)  

@@ -81,9 +81,8 @@ class BaseModel:
             steps_per_epoch=len(training_dataset)//batch_size,
             validation_data=validation_generator,
             validation_steps=validation_steps, 
-            callbacks=[save_model_callback, csv_logger_callback], 
-            class_weight=class_weights
-        )
+            callbacks=[save_model_callback, csv_logger_callback]
+            )
 
     def make_single_prediction(self, data_point: DataPoint) -> np.ndarray:
         patch = data_point.get_patch()[np.newaxis, ...]  # add batch dimension
