@@ -6,6 +6,7 @@ from collections import defaultdict
 import pandas as pd
 from typing import List, Tuple, Dict, Any
 
+from src.data.utils import get_slide_tissue_type
 
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lscc':1}, 'luad_lscc': {'luad':0, 'lscc':1}, 'norm_luad_lscc': {'normal':0, 'luad':1, 'lscc':2}}
 
@@ -149,7 +150,7 @@ def _write_info(slide_folder: str, output_csv: dict, output_folder: str, patient
     patient_id = slides_metadata[slides_metadata['slide_id'] == slide_id]['patient_id'].item()
     if patient_id in patient_to_category: 
         category = patient_to_category[patient_id]
-        slide_tissue_type = _get_slide_tissue_type(slide_id, slides_metadata)
+        slide_tissue_type = get_slide_tissue_type(slide_id, slides_metadata)
         try: 
             slide_class = str(classes[slide_tissue_type]) 
         except: # this skips 'normal' slides in the second sorting option that only considers luad vs. lusc slides
@@ -172,10 +173,3 @@ def _add_category_information_to_slide_metadata(slides_metadata: pd.DataFrame, s
     slides_metadata.to_csv(slides_metadata_path)
 
 
-def _get_slide_tissue_type(slide_id: str, slides_metadata: pd.DataFrame) -> str:
-    cancer_subtype = slides_metadata[slides_metadata['slide_id'] == slide_id]['cancer_subtype'].item()
-    tissue_type = slides_metadata[slides_metadata['slide_id'] == slide_id]['tissue_type'].item()
-    if tissue_type == 'normal':
-        return tissue_type
-    else: 
-        return cancer_subtype

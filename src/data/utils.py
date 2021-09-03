@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import subprocess
 from openslide import open_slide
+from typing import List
 
 from src.data.tile_generation_cptac import _get_path_to_slide_from_gcs_url
 
@@ -32,8 +33,23 @@ def _add_column_to_dataframe(dataframe, column):
     dataframe.insert(3, 'tissue_type', column)
     return dataframe    
 
+def get_slide_tissue_type(slide_id: str, slides_metadata: pd.DataFrame) -> str:
+    cancer_subtype = slides_metadata[slides_metadata['slide_id'] == slide_id]['cancer_subtype'].item()
+    tissue_type = slides_metadata[slides_metadata['slide_id'] == slide_id]['tissue_type'].item()
+    if tissue_type == 'normal':
+        return tissue_type
+    else: 
+        return cancer_subtype
 
-def get_thumbnail(slide_ids, metadata_path, output_folder, google_cloud_project_id):  
+
+def get_random_testset_slide_ids(slides_metadata: pd.DataFrame) -> List[str]:
+    ts = slides_metadata[slides_metadata['dataset'] == 'test']
+    slide_ids = ts[ts['cancer_subtype']=='luad'].sample(n=2)['slide_id'].tolist()
+    slide_ids.extend(ts[ts['cancer_subtype']=='lscc'].sample(n=2)['slide_id'].tolist())
+    return slide_ids
+
+
+def get_thumbnail(slide_ids: List[str], metadata_path: str, output_folder: str, google_cloud_project_id: str) -> None:  
     slides_metadata = pd.read_csv(metadata_path)
     for slide_id in slide_ids: 
         print('Generate thumbnail for slide %s' %(slide_id))
