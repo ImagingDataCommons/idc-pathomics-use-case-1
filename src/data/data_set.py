@@ -59,7 +59,7 @@ class Dataset:
                         # generate k-hot-encoding for the reference
                         batch_y[batch_index] = self.to_k_hot_encoding(data_point)
 
-                yield batch_x, batch_y#, [None]
+                yield batch_x, batch_y #, [None] 
             
             if not infinite:
                 break
