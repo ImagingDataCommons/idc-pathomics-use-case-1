@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import List
 
 
-def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, get_thumbnail: List[str], google_cloud_project_id: str) -> None:
+def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
@@ -20,6 +20,7 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
         slides_folder (str): absolute path to the folder containing the DICOM slides. 
         metadata_path (str): absolute path to the metadata file. 
         output_folder (str): absolute path to the output folder. A separate subfolder containing the tiles will be created for every slide.
+        save_every_xth_tile (int): don't store every tile, but only every x-th one. Should be set to 1 if all tiles should be stored.  
         google_cloud_project_id (str): ID of the Google Cloud Project used. 
 
     Returns:
@@ -32,42 +33,36 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
         gcs_url = row['gcs_url']
-        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, get_thumbnail, google_cloud_project_id)
+        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
 
 
 # Workaround for a potential memory leak in Openslide 
-def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, get_thumbnail: List[str], google_cloud_project_id: str) -> None:
-    p = Process(target=_generate_tiles_for_slide, args=(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, get_thumbnail, google_cloud_project_id)) 
+def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
+    p = Process(target=_generate_tiles_for_slide, args=(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)) 
     p.start()
     p.join()
 
 
-def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, get_thumbnail: List[str], google_cloud_project_id: str) -> None:
-    print('start next')
+def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
     if os.path.exists(output_dir_tiles):
-        print("Slide %s already downloaded and tiled" % slide_id)
+        print('Slide %s already downloaded and tiled' % slide_id)
         return
     
     # Download slide in DICOM format using gsutil
-    print('Bottleneck downloading slide?', datetime.now())
+    print('Downloading slide %s - %s' %(slide_id, datetime.now()))
     cmd = ['gsutil -u {id} cp {url} {local_dir}'.format(id=google_cloud_project_id, url=gcs_url, local_dir=os.path.dirname(path_to_slide))]
     subprocess.run(cmd, shell=True)
 
     # Open slide and instantiate a DeepZoomGenerator for that slide
-    print('Processing: %s' %(slide_id))
+    print('Processing: %s - %s' %(slide_id, datetime.now()))
 
     try:
-        print('Trying to open', datetime.now())
         slide = open_slide(path_to_slide)  
-        if slide_id in get_thumbnail: 
-            print('Trying get thumbnail', datetime.now())
-            thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
-            thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
         dz = DeepZoomGenerator(slide, tile_size=128, overlap=0, limit_bounds=True)
     except: 
-        print('Some processing error for slide %s' %(slide_id))
+        print('Some processing error for slide %s. Moving to the next slide.' %(slide_id))
         os.remove(path_to_slide)
         return 
     
@@ -75,12 +70,9 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     level = dz.level_count-3 # take third highest level 
     os.makedirs(output_dir_tiles) 
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
-    print('Bottleneck iteration through tiles?', datetime.now())
     
     tuples = [(row,col) for row in range(rows) for col in range(cols)]
-    print('len',len(tuples))
     tuples = tuples[::save_every_xth_tile]
-    print('lenstep', len(tuples))
     for (row, col) in tuples: 
         tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
         if not os.path.exists(tilename):
