@@ -6,7 +6,7 @@ from collections import defaultdict
 import pandas as pd
 from typing import List, Tuple, Dict, Any
 
-from src.data.utils import get_slide_tissue_type
+from .utils import get_slide_tissue_type
 
 SORTING_OPTIONS = {'norm_cancer': {'normal':0, 'luad':1, 'lscc':1}, 'luad_lscc': {'luad':0, 'lscc':1}, 'norm_luad_lscc': {'normal':0, 'luad':1, 'lscc':2}}
 

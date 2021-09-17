@@ -4,7 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from typing import List
 
-from src.evaluation.predictions import Predictions 
+from .predictions import Predictions 
 
 
 def get_heatmap(predictions: Predictions, slide_id: str, colormap_strings: List[str] = ['Greys', 'Oranges', 'Blues']) -> None:

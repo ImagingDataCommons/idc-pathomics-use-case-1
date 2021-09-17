@@ -3,7 +3,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, Input, MaxPool2D
 from typing import Tuple
 
-from src.model.base_model import BaseModel
+from .base_model import BaseModel
 
 
 class DummyModel(BaseModel):

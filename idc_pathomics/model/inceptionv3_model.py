@@ -3,7 +3,7 @@ from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
 from tensorflow.keras import Model
 from typing import Tuple, Dict, Union
 
-from src.model.base_model import BaseModel
+from .base_model import BaseModel
 
 
 class InceptionModel(BaseModel):
