@@ -236,7 +236,6 @@ class ROCAnalysis():
                     )
                 self._format_and_save_plot(axes[i], 'ROC (%s)' % (avg_method))
             fig.savefig(os.path.join(output_folder, 'roc_analysis.png'))
-            plt.tight_layout()
             plt.show()
             plt.close()
 
