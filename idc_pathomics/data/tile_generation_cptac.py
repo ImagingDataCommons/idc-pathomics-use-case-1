@@ -28,7 +28,9 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
     """
 
     slides_metadata = pd.read_csv(metadata_path)
-    for _, row in slides_metadata.iterrows():
+    num_slides = len(slides_metadata)
+    for idx, row in slides_metadata.iterrows():
+        print('%s/%s' %(idx+1, num_slides))
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
         gcs_url = row['gcs_url']
