@@ -73,11 +73,10 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
     
     tuples = [(row,col) for row in range(rows) for col in range(cols)]
-    #print('required:', len(tuples[::save_every_xth_tile]))
-    #tuples = tuples[::save_every_xth_tile//3]
-    print(len(tuples))
+    required = len(tuples[::save_every_xth_tile])
+    print(required, len(tuples))
     saved=0
-    for (row, col) in tuples: 
+    for (row, col) in tuples[::5]: 
         tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
         if not os.path.exists(tilename):
             tile = dz.get_tile(level, address=(col, row)) 
@@ -86,6 +85,8 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
             if avg_bkg <= 0.5 and tile.size[0] == 128 and tile.size[1] == 128: 
                 tile.save(tilename, quality=90)
                 saved+=1
+                if saved == required:
+                    break 
     print('saved', saved)
 
     # After tiling delete the WSI to save disk space
