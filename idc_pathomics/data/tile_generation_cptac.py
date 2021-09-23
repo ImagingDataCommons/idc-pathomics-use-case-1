@@ -74,6 +74,8 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     
     tuples = [(row,col) for row in range(rows) for col in range(cols)]
     tuples = tuples[::save_every_xth_tile]
+    print(len(tuples))
+    saved=0
     for (row, col) in tuples: 
         tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
         if not os.path.exists(tilename):
@@ -82,7 +84,8 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
             avg_bkg = _get_amount_of_background(tile)
             if avg_bkg <= 0.5 and tile.size[0] == 128 and tile.size[1] == 128: 
                 tile.save(tilename, quality=90)
-
+                saved+=1
+    print('saved', saved )
     # After tiling delete the WSI to save disk space
     os.remove(path_to_slide)
 
