@@ -84,8 +84,6 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
             if avg_bkg <= 0.5 and tile.size[0] == 128 and tile.size[1] == 128: 
                 tile.save(tilename, quality=90)
                 num_saved += 1
-                if num_saved == required:
-                    break 
     print('saved', num_saved)
 
     # After tiling delete the WSI to save disk space
