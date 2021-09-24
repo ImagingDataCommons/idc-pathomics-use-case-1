@@ -74,6 +74,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     
     tuples = [(row,col) for row in range(1, rows) for col in range(1, cols)] # skip first row and colum --> almost everything all background
     print('tuples', len(tuples))
+    
     num_saved = 0
     for (row, col) in tuples[::5]: # to be faster, only look at every 4th tile
         tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
