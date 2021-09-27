@@ -8,15 +8,12 @@ from ..data.data_set import Dataset
 
 class Predictions():
     
-    def __init__(self, model: tf.keras.Model = None, dataset: Dataset = None, predictions: pd.DataFrame = None, batches: bool = True) -> None:
+    def __init__(self, model: tf.keras.Model = None, dataset: Dataset = None, predictions: pd.DataFrame = None) -> None:
 
         if predictions is not None: 
             self.predictions = predictions
         else: 
-            if batches: 
-                self.predictions = self._make_batch_predictions(model, dataset)
-            else: 
-                self.predictions = self._make_predictions(model, dataset)
+            self.predictions = self._make_predictions(model, dataset)
 
                 
     @classmethod
@@ -25,18 +22,6 @@ class Predictions():
         return cls(predictions = predictions)
 
     def _make_predictions(self, model: tf.keras.Model, dataset: Dataset) -> pd.DataFrame:
-        predictions_dict = {}
-        for i, data_point in enumerate(dataset.data_points):
-            slide_id = data_point.get_slide_id()
-            predictions_dict[i] = {
-                'slide_id': slide_id,
-                'tile_position': data_point.get_position(),
-                'reference_value': data_point.get_reference_value(),
-                'prediction': model.make_single_prediction(data_point).numpy()
-        }
-        return pd.DataFrame.from_dict(predictions_dict, orient='index')
-
-    def _make_batch_predictions(self, model: tf.keras.Model, dataset: Dataset) -> pd.DataFrame:
         batch_predictions = np.empty((0,3), np.float32)
         for i in range(0, len(dataset.data_points), 512): 
             batch = dataset.data_points[i:i+512]

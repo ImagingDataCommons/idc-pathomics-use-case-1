@@ -84,13 +84,8 @@ class BaseModel:
             callbacks=[save_model_callback, csv_logger_callback], 
             class_weight=class_weights
         )
-
-    def make_single_prediction(self, data_point: DataPoint) -> np.ndarray:
-        patch = data_point.get_patch()[np.newaxis, ...]  # add batch dimension
-        prediction = self.model(patch)
-        return prediction[0, ...] # remove batch dimension
     
-    def make_batch_prediction(self, data_points: List[DataPoint]) -> np.ndarray: 
+    def make_prediction(self, data_points: List[DataPoint]) -> np.ndarray: 
         # create batch
         tile_size = self.model.layers[0].input_shape[0][1]
         required_dtype = data_points[0].get_patch().dtype
