@@ -33,7 +33,7 @@ class Dataset:
     def __len__(self) -> int:
         return len(self.data_points)
 
-    def get_generator(self, batch_size: int = 1, infinite: bool = False, shuffle: bool = False) -> Generator[np.ndarray, np.ndarray, list]: 
+    def get_generator(self, batch_size: int = 1, infinite: bool = False, shuffle: bool = False) -> Generator[np.ndarray, np.ndarray]: 
         indices = list(range(len(self.data_points)))
         while True:
             if shuffle:
@@ -59,12 +59,12 @@ class Dataset:
                         # generate k-hot-encoding for the reference
                         batch_y[batch_index] = self.to_k_hot_encoding(data_point)
 
-                yield batch_x, batch_y #, [None] 
+                yield batch_x, batch_y
             
             if not infinite:
                 break
 
-    def to_k_hot_encoding(self, data_point):
+    def to_k_hot_encoding(self, data_point: DataPoint) -> np.ndarray:
         one_hot_in_lines = to_categorical(data_point.get_reference_value(), num_classes=10)
         k_hot = one_hot_in_lines.sum(axis=0)
         return k_hot

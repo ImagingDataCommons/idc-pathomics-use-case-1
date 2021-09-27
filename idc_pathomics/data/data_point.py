@@ -7,13 +7,14 @@ from typing import List, Union
 # Path structure is /some/dirs/[SLIDE-ID]/[X]_[Y].jpeg 
 
 class DataPoint:
+    
     def __init__(self, patch_path: str, reference_value: Union[int, List[int]]) -> None:
         self.patch_path = patch_path
         self.reference_value = reference_value
 
     def get_patch(self) -> Image:
         img = load_img(self.patch_path, color_mode='rgb')
-        return (img_to_array(img) / 127.5) - 1.0 # scale to [-1, 1], expected input for InceptionV3 network
+        return (img_to_array(img) / 127.5) - 1.0 # Scale to [-1, 1], expected input for InceptionV3 network
 
     def get_reference_value(self) -> Union[int, List[int]]:
         return self.reference_value

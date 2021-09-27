@@ -25,7 +25,7 @@ class Predictions():
         batch_predictions = np.empty((0,3), np.float32)
         for i in range(0, len(dataset.data_points), 512): 
             batch = dataset.data_points[i:i+512]
-            batch_prediction = model.make_batch_prediction(batch).numpy()
+            batch_prediction = model.make_prediction(batch).numpy()
             batch_predictions = np.append(batch_predictions, batch_prediction, axis = 0)
         predictions_dict = self._fill_predictions_dict(dataset, batch_predictions)
         return pd.DataFrame.from_dict(predictions_dict, orient='index')

@@ -1,7 +1,6 @@
 import os
 from glob import glob 
 import numpy as np
-import openslide
 import pandas as pd
 from openslide import open_slide
 from openslide.deepzoom import DeepZoomGenerator
@@ -9,18 +8,17 @@ from PIL.Image import Image
 import subprocess
 from multiprocessing import Process
 from datetime import datetime
-from typing import List
 
 
-def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
+def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, every_xth_tile: int, google_cloud_project_id: str) -> None:
     """ 
     Run tiling for each slide separately. If tiles for the respective slide are already present, the slide is skipped. 
 
     Args:
-        slides_folder (str): absolute path to the folder containing the DICOM slides. 
+        slides_folder (str): absolute path to the folder containing the slides. 
         metadata_path (str): absolute path to the metadata file. 
         output_folder (str): absolute path to the output folder. A separate subfolder containing the tiles will be created for every slide.
-        save_every_xth_tile (int): don't store every tile, but only every x-th one. Should be set to 1 if all tiles should be stored.  
+        every_xth_tile (int): don't look at every tile, but only every x-th one. Should be set to 1 if all tiles should be considered.  
         google_cloud_project_id (str): ID of the Google Cloud Project used. 
 
     Returns:
@@ -34,17 +32,17 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, s
         path_to_slide = _get_path_to_slide_from_gcs_url(row['gcs_url'], slides_folder) 
         slide_id = row['slide_id']
         gcs_url = row['gcs_url']
-        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)
+        _generate_tiles_for_slide_in_process(path_to_slide, slide_id, gcs_url, output_folder, every_xth_tile, google_cloud_project_id)
 
 
 # Workaround for a potential memory leak in Openslide 
-def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
-    p = Process(target=_generate_tiles_for_slide, args=(path_to_slide, slide_id, gcs_url, output_folder, save_every_xth_tile, google_cloud_project_id)) 
+def _generate_tiles_for_slide_in_process(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, every_xth_tile: int, google_cloud_project_id: str) -> None:
+    p = Process(target=_generate_tiles_for_slide, args=(path_to_slide, slide_id, gcs_url, output_folder, every_xth_tile, google_cloud_project_id)) 
     p.start()
     p.join()
 
 
-def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, save_every_xth_tile: int, google_cloud_project_id: str) -> None:
+def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, output_folder: str, every_xth_tile: int, google_cloud_project_id: str) -> None:
     # Check if slide is already tiled
     output_dir_tiles = os.path.join(output_folder, slide_id) 
     if os.path.exists(output_dir_tiles):
@@ -72,11 +70,11 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     os.makedirs(output_dir_tiles) 
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
     
-    tuples = [(row,col) for row in range(1, rows) for col in range(1, cols)] # skip first row and colum --> almost everything all background
+    tuples = [(row,col) for row in range(1, rows) for col in range(1, cols)] # skip first row and colum (always background)
     print('tuples', len(tuples))
     
     num_saved = 0
-    for (row, col) in tuples[::5]: # to be faster, only look at every 4th tile
+    for (row, col) in tuples[::every_xth_tile]:
         tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
         if not os.path.exists(tilename):
             tile = dz.get_tile(level, address=(col, row)) 
@@ -91,7 +89,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     os.remove(path_to_slide)
 
 
-def _get_path_to_slide_from_gcs_url(gcs_url, slides_folder):
+def _get_path_to_slide_from_gcs_url(gcs_url: str, slides_folder: str) -> str:
     filename = os.path.basename(gcs_url)
     return os.path.join(slides_folder, filename)
 
