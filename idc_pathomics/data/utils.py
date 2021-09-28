@@ -24,7 +24,7 @@ def get_random_testset_slide_ids(slides_metadata: pd.DataFrame) -> List[str]:
     return slide_ids
 
 
-def get_thumbnails(slide_ids: List[str], metadata_path: str, output_folder: str, google_cloud_project_id: str) -> None:
+def get_thumbnails_bla(slide_ids: List[str], metadata_path: str, output_folder: str, google_cloud_project_id: str) -> None:
     slides_metadata = pd.read_csv(metadata_path)
     for slide_id in slide_ids: 
         print('Generate thumbnail for slide %s' %(slide_id))
