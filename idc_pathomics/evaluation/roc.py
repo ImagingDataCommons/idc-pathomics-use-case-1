@@ -15,18 +15,17 @@ from typing import Tuple, List, Dict
 from .predictions import Predictions 
 
 
-EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lusc': {0:'LUAD', 1:'LUSC'}, 'norm_luad_lusc': {0:'Normal', 1:'LUAD', 2:'LUSC'}, 
+EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lssc': {0:'LUAD', 1:'LSSC'}, 'norm_luad_lssc': {0:'Normal', 1:'LUAD', 2:'LSSC'}, 
                'mutations': {0: 'STK11', 1: 'EGFR', 2: 'SETBP1', 3: 'TP53', 4: 'FAT1', 5: 'KRAS', 6: 'KEAP1', 7: 'LRP1B', 8: 'FAT4', 9: 'NF1'}, 
                'binary_egfr': {0: 'Normal', 1: 'EGFR'}, 'binary_stk11': {0: 'Normal', 1: 'STK11'}, 'binary_setbp1': {0: 'Normal', 1: 'SETBP1'}, 
                'binary_tp53': {0: 'Normal', 1: 'TP53'}}
 
 class ROCAnalysis():
 
-    def __init__(self, predictions: Predictions, experiment: str = 'norm_luad_lusc') -> None:
+    def __init__(self, predictions: Predictions, experiment: str = 'norm_luad_lssc') -> None:
         self.experiment = experiment
         self.num_classes = len(EXPERIMENTS[self.experiment])
         self._run_roc_analysis(predictions)
-        
 
     def _run_roc_analysis(self, predictions: Predictions) -> None: 
         # Tile-based analysis
@@ -116,7 +115,6 @@ class ROCAnalysis():
 
 
     def _run_slide_based_roc_analysis(self, slide_data: pd.DataFrame) -> Tuple[dict, dict, dict, dict]:
-        
         # Multi-class ROC curve including ROC curve for each class-vs-rest, micro- and macro-average ROC
         if self.num_classes > 2: 
             fpr, tpr, auc, ci = self._generate_multiclass_roc_curves(slide_data)
@@ -133,7 +131,7 @@ class ROCAnalysis():
         return fpr, tpr, auc, ci
 
 
-    def _generate_multiclass_roc_curves(self, slide_data: pd.DataFrame) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray], Dict[str, float]]: 
+    def _generate_multiclass_roc_curves(self, slide_data: pd.DataFrame) -> Tuple[dict, dict, dict, dict]: 
         # Binarize the reference values 
         reference = self._binarize_labels(slide_data['reference_value'].tolist())
 
@@ -193,7 +191,7 @@ class ROCAnalysis():
         return all_fpr, mean_tpr, auc
 
 
-    def plot_and_save(self, output_folder) -> None:
+    def plot_and_save(self, output_folder: str) -> None:
         colors = ['g', 'b', 'r', 'olive', 'gray', 'orange', 'magenta', 'royalblue', 'aqua', 'burlywood', 'yellow']
 
         if self.num_classes == 2:
@@ -239,7 +237,8 @@ class ROCAnalysis():
             plt.show()
             plt.close()
 
-    def _plot_bisector(self, axis):
+
+    def _plot_bisector(self, axis: plt.Axes) -> None:
         axis.plot(
             [0, 1],
             [0, 1],
@@ -248,7 +247,8 @@ class ROCAnalysis():
             linestyle='--'
         )
 
-    def _format_and_save_plot(self, axis, title):
+
+    def _format_and_save_plot(self, axis: plt.Axes, title: str) -> None:
         axis.set_title(title)
         axis.set_xlim([0.0, 1.0])
         axis.set_ylim([0.0, 1.0])
@@ -257,7 +257,7 @@ class ROCAnalysis():
         axis.legend(loc='lower right')
 
 
-    def print_and_save_tabluar_results_with_ci(self, output_path):
+    def print_and_save_tabluar_results_with_ci(self, output_path: str) -> None:
         class_to_str_mapping = copy(EXPERIMENTS[self.experiment])
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'
@@ -286,7 +286,7 @@ class ROCAnalysis():
         text_file.close()
 
 
-    def print_and_save_tabluar_results(self, output_path):
+    def print_and_save_tabluar_results(self, output_path:str) -> None:
         class_to_str_mapping = copy(EXPERIMENTS[self.experiment])
         class_to_str_mapping['micro'] = 'Micro'
         class_to_str_mapping['macro'] = 'Macro'

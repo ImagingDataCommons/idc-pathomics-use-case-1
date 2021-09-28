@@ -1,5 +1,5 @@
 import tensorflow as tf 
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
 from tensorflow.keras import Model
 from typing import Tuple, Dict, Union
 
@@ -9,7 +9,6 @@ from .base_model import BaseModel
 class InceptionModel(BaseModel):
     
     def _create_model(self, num_classes: int = 2, input_shape: Tuple[int, int, int] = (512, 512, 3), learning_rate: float = 0.001) -> tf.keras.Model:
-
         # Use Inception v3 model by Keras and add top layers manually 
         configs = self._define_configurations(num_classes)
         model = tf.keras.applications.InceptionV3(include_top=False, weights=None, input_shape=input_shape)
@@ -43,7 +42,6 @@ class InceptionModel(BaseModel):
     def _add_top_layers(self, model: tf.keras.Model, classifier_activation: str, num_classes: int) -> tf.keras.Model:
         output = model.output
         output = GlobalAveragePooling2D()(output)
-        #output = Dropout(0.5)(output)
         output = Dense(num_classes, activation=classifier_activation, name='predictions')(output)
         return Model(model.input, output)
 

@@ -1,5 +1,4 @@
 import os
-import random
 import json 
 import numpy as np
 import tensorflow as tf
@@ -86,14 +85,14 @@ class BaseModel:
         )
     
     def make_prediction(self, data_points: List[DataPoint]) -> np.ndarray: 
-        # create batch
+        # Create batch
         tile_size = self.model.layers[0].input_shape[0][1]
         required_dtype = data_points[0].get_patch().dtype
         batch = np.empty((0, tile_size, tile_size, 3), required_dtype)
         for data_point in data_points:
             patch = data_point.get_patch()[np.newaxis, ...] # add batch dimension
             batch = np.append(batch, patch, axis=0)
-        # make prediction 
+        # Make prediction 
         prediction = self.model(batch)
         return prediction
 

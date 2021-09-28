@@ -1,10 +1,8 @@
 import os 
-import re 
 from glob import glob
-import json
 from collections import defaultdict
 import pandas as pd
-from typing import List, Tuple, Dict, Any
+from typing import Dict
 
 from .utils import get_slide_tissue_type
 
@@ -17,8 +15,8 @@ def sort_tiles(tiles_folder: str, slides_metadata_path: str, output_folder: str,
     test and validation set. 
     Stores separate csv files for training, test and validation set, each in the format "path, reference_class" 
         > 'normal_cancer': 'normal' vs. 'cancer'
-        > 'luad_lusc': 'cancer subtype LUAD' vs. 'cancer subtype LUSC'
-        > 'normal_luad_lusc': 'normal' vs. 'LUAD' vs. 'LUSC'
+        > 'luad_lssc': 'cancer subtype LUAD' vs. 'cancer subtype LUSC'
+        > 'normal_luad_lssc': 'normal' vs. 'LUAD' vs. 'LUSC'
 
     Args:
         tiles_folder (str): absolute path to the folder containing all tiles (in separate subfolders per slide)
@@ -52,7 +50,7 @@ def _get_classes(sorting_option: str) -> Dict[str, int]:
 
 
 def _get_patient_meta(patient_metadata_path: str, slides_metadata: pd.DataFrame, tiles_folder: str) -> pd.DataFrame: 
-    # load or generate internally used dataframe in the format: patientID | nr_tiles | cancer subtype (LUSC, LUAD)
+    # Load or generate internally used dataframe in the format: patientID | nr_tiles | cancer subtype (LUSC, LUAD)
     if os.path.isfile(patient_metadata_path): 
         patient_meta = pd.read_csv(patient_metadata_path)
     else: 

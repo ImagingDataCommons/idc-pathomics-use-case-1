@@ -1,30 +1,29 @@
-from typing import Dict
 import numpy as np 
 import pandas as pd
 import tensorflow as tf
+from typing import Dict
 
 from ..data.data_set import Dataset
 
 
 class Predictions():
     
-    def __init__(self, model: tf.keras.Model = None, dataset: Dataset = None, predictions: pd.DataFrame = None) -> None:
+    def __init__(self, model: tf.keras.Model = None, dataset: Dataset = None, batch_size: int = 2, predictions: pd.DataFrame = None) -> None:
 
         if predictions is not None: 
             self.predictions = predictions
         else: 
-            self.predictions = self._make_predictions(model, dataset)
-
+            self.predictions = self._make_predictions(model, dataset, batch_size)
                 
     @classmethod
     def load(cls, file_path: str) -> None: 
         predictions = pd.read_json(file_path)
         return cls(predictions = predictions)
 
-    def _make_predictions(self, model: tf.keras.Model, dataset: Dataset) -> pd.DataFrame:
+    def _make_predictions(self, model: tf.keras.Model, dataset: Dataset, batch_size: int = 2) -> pd.DataFrame:
         batch_predictions = np.empty((0,3), np.float32)
-        for i in range(0, len(dataset.data_points), 512): 
-            batch = dataset.data_points[i:i+512]
+        for i in range(0, len(dataset.data_points), batch_size): 
+            batch = dataset.data_points[i:i+batch_size]
             batch_prediction = model.make_prediction(batch).numpy()
             batch_predictions = np.append(batch_predictions, batch_prediction, axis = 0)
         predictions_dict = self._fill_predictions_dict(dataset, batch_predictions)
