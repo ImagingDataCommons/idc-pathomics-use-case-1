@@ -219,7 +219,7 @@ class ROCAnalysis():
             for i, avg_method in enumerate(self.fpr):
                 self._plot_bisector(axes[i])
                 for idx, key in enumerate(self.fpr[avg_method]): 
-                    if key=='macro': # to be removed as soon as missing macro computation is added 
+                    if key=='macro': # to be removed as soon as macro computation is added 
                         continue 
                     class_to_str_mapping = copy(EXPERIMENTS[self.experiment])
                     class_to_str_mapping['micro'] = 'Micro'

@@ -9,7 +9,7 @@ from ..data.data_set import Dataset
 class Predictions():
     
     def __init__(self, model: tf.keras.Model = None, dataset: Dataset = None, batch_size: int = 2, predictions: pd.DataFrame = None) -> None:
-
+        
         if predictions is not None: 
             self.predictions = predictions
         else: 
