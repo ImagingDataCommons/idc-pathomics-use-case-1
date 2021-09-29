@@ -25,6 +25,12 @@ def generate_tiles(slides_folder: str, metadata_path: str, output_folder: str, e
         None
     """
 
+    if not os.path.exists(slides_folder):
+        os.makedirs(slides_folder)
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
     slides_metadata = pd.read_csv(metadata_path)
     num_slides = len(slides_metadata)
     for idx, row in slides_metadata.iterrows():
