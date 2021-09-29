@@ -46,10 +46,8 @@ def _get_thumbnail(slide_id: str, slides_metadata: pd.DataFrame, output_folder: 
     subprocess.run(cmd, shell=True)
     # Open slide and generate thumbnail. Afterwards delete the slide.
     slide = open_slide(path_to_slide)
-    region = slide.read_region((0, 0), 3, slide.level_dimensions[3])
-    #thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
-    #thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
-    region.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
+    thumbnail = slide.get_thumbnail((300,300)) # get and save thumbnail image
+    thumbnail.save(os.path.join(os.path.dirname(path_to_slide), slide_id + '.png'))
     os.remove(path_to_slide)
 
 

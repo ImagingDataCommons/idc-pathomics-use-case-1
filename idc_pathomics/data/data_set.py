@@ -33,7 +33,7 @@ class Dataset:
     def __len__(self) -> int:
         return len(self.data_points)
 
-    def get_generator(self, batch_size: int = 1, infinite: bool = False, shuffle: bool = False) -> Generator[np.ndarray, np.ndarray]: 
+    def get_generator(self, batch_size: int = 1, infinite: bool = False, shuffle: bool = False) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]: 
         indices = list(range(len(self.data_points)))
         while True:
             if shuffle:
