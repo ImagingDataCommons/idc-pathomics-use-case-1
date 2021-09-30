@@ -214,7 +214,7 @@ class ROCAnalysis():
         # Plot ROC curves separately for the two averaging methods if num_classes > 2
         else: 
             fig, axes = plt.subplots(1,2, figsize=(10,4))
-            fig.suptitle('Figure 4: Slide-based ROC analysis')
+            fig.suptitle('Slide-based ROC analysis')
             for i, avg_method in enumerate(self.fpr):
                 self._plot_bisector(axes[i])
                 for idx, key in enumerate(self.fpr[avg_method]): 

@@ -16,6 +16,7 @@ def generate_heatmap(predictions: Predictions, slide_id: str, colormap_strings: 
 
     slide_heatmap = -1 * np.ones((max_rows, max_cols, 4)) # initialize heatmap with -1
     for c, p in zip(coord, pred):
+        p = p.tolist()
         colormap_to_use = colormaps[p.index(max(p))] 
         slide_heatmap[c[1], c[0], :] = colormap_to_use(max(p))
     
