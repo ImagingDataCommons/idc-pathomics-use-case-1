@@ -22,12 +22,11 @@ EXPERIMENTS = {'norm_cancer': {0: 'Normal', 1:'Tumor'}, 'luad_lssc': {0:'LUAD', 
 
 class ROCAnalysis():
 
-    def __init__(self, predictions: Predictions, experiment: str = 'norm_luad_lssc') -> None:
+    def __init__(self, experiment: str = 'norm_luad_lssc') -> None:
         self.experiment = experiment
         self.num_classes = len(EXPERIMENTS[self.experiment])
-        self._run_roc_analysis(predictions)
 
-    def _run_roc_analysis(self, predictions: Predictions) -> None: 
+    def run(self, predictions: Predictions) -> None: 
         # Tile-based analysis
         self.tile_auc, self.tile_ci = self._run_tile_based_roc_analysis(predictions)
         # Slide-based analysis

@@ -7,7 +7,7 @@ from typing import List
 from .predictions import Predictions 
 
 
-def get_heatmap(predictions: Predictions, slide_id: str, colormap_strings: List[str] = ['Greys', 'Oranges', 'Blues']) -> None:
+def generate_heatmap(predictions: Predictions, slide_id: str, colormap_strings: List[str] = ['Greys', 'Oranges', 'Blues']) -> None:
     pred = predictions.get_predictions_for_slide(slide_id)
     coord = predictions.get_tile_positions_for_slide(slide_id)
     max_cols = max([c[0] for c in coord]) + 1
