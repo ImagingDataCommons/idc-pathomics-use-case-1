@@ -72,12 +72,13 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
         return 
     
     # Tiling 
-    level = dz.level_count-3 # take third highest level corresponding to 5x resolution
-    print(dz.level_dimensions, dz.level_tiles)
+    level = dz.level_count-1 # take highest level corresponding to 5x resolution
     os.makedirs(output_dir_tiles) 
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
     
     tuples = [(row,col) for row in range(1, rows) for col in range(1, cols)] # skip first row and colum (always background) 
+    print(len(tuples))
+    num_saved = 0
     for (row, col) in tuples[::every_xth_tile]:
         tilename = os.path.join(output_dir_tiles, '%d_%d.%s' %(col, row, 'jpeg'))
         if not os.path.exists(tilename):
@@ -86,7 +87,8 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
             avg_bkg = _get_amount_of_background(tile)
             if avg_bkg <= 0.5 and tile.size[0] == 128 and tile.size[1] == 128: 
                 tile.save(tilename, quality=90)
-
+                num_saved+=1
+    print(num_saved)
     # After tiling delete the WSI to save disk space
     os.remove(path_to_slide)
 
