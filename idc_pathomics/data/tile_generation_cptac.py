@@ -73,6 +73,7 @@ def _generate_tiles_for_slide(path_to_slide: str, slide_id: str, gcs_url: str, o
     
     # Tiling 
     level = dz.level_count-3 # take third highest level corresponding to 5x resolution
+    print(dz.level_dimensions, dz.level_tiles)
     os.makedirs(output_dir_tiles) 
     cols, rows = dz.level_tiles[level] # get number of tiles in this level as (nr_tiles_xAxis, nr_tiles_yAxis)
     
