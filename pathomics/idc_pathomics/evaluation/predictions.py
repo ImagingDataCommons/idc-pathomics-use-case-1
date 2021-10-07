@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from typing import Dict
+from datetime import datetime
 
 from ..data.data_set import Dataset
 
@@ -17,7 +18,7 @@ class Predictions():
                 
     @classmethod
     def load(cls, file_path: str) -> None: 
-        predictions = pd.read_json(file_path)
+        predictions = pd.read_csv(file_path)
         return cls(predictions = predictions)
 
     def _make_predictions(self, model: tf.keras.Model, dataset: Dataset, batch_size: int = 2) -> pd.DataFrame:
@@ -26,10 +27,10 @@ class Predictions():
             batch = dataset.data_points[i:i+batch_size]
             batch_prediction = model.make_prediction(batch).numpy()
             batch_predictions = np.append(batch_predictions, batch_prediction, axis = 0)
-        predictions_dict = self._fill_predictions_dict(dataset, batch_predictions)
-        return pd.DataFrame.from_dict(predictions_dict, orient='index')
+        predictions = self._predictions_to_df(dataset, batch_predictions)
+        return predictions
 
-    def _fill_predictions_dict(self, dataset: Dataset, batch_predictions: np.ndarray) -> Dict: 
+    def _predictions_to_df(self, dataset: Dataset, batch_predictions: np.ndarray) -> Dict: 
         predictions_dict = {}
         for i, data_point in enumerate(dataset.data_points):
             slide_id = data_point.get_slide_id()
@@ -39,22 +40,22 @@ class Predictions():
                 'reference_value': data_point.get_reference_value(),
                 'prediction': batch_predictions[i]
         }
-        return predictions_dict
+        return pd.DataFrame.from_dict(predictions_dict, orient='index')
 
     def save(self, path: str) -> None:
-        self.predictions.to_json(path)
+        self.predictions.to_csv(path)
 
-    def get_predictions_for_slide(self, slide_id: str) -> list:
-        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['prediction'].tolist()
+    def get_predictions_for_slide(self, slide_id: str) -> np.ndarray:
+        predictions = self.predictions.loc[self.predictions['slide_id'] == slide_id]['prediction']
+        return np.stack(predictions.values)
     
-    def get_tile_positions_for_slide(self, slide_id: str) -> list:
-        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['tile_position'].tolist()
+    def get_tile_positions_for_slide(self, slide_id: str) -> np.ndarray:
+        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['tile_position'].to_numpy()
 
     def get_reference_value_for_slide(self, slide_id: str) -> int:
-        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['reference_value'].tolist()[0]
-    
-    def get_all_reference_values_for_slide(self, slide_id: str) -> list:
-        return self.predictions.loc[self.predictions['slide_id'] == slide_id]['reference_value'].tolist()
+        reference_values = self.predictions.loc[self.predictions['slide_id'] == slide_id]['reference_value'].to_numpy()
+        assert np.all(reference_values == reference_values[0])
+        return reference_values[0]
 
 
     
