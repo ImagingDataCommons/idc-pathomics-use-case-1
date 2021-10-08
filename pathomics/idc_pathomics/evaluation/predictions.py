@@ -28,6 +28,7 @@ class Predictions():
             batch_prediction = model.make_prediction(batch).numpy()
             batch_predictions = np.append(batch_predictions, batch_prediction, axis = 0)
         predictions = self._predictions_to_df(dataset, batch_predictions)
+        print()
         return predictions
 
     def _predictions_to_df(self, dataset: Dataset, batch_predictions: np.ndarray) -> Dict: 
@@ -40,10 +41,18 @@ class Predictions():
                 'reference_value': data_point.get_reference_value(),
                 'prediction': batch_predictions[i]
         }
-        return pd.DataFrame.from_dict(predictions_dict, orient='index')
+        predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
+        test = pd.DataFrame(predictions['prediction'].to_list())
+        print('test', test)
+        predictions = pd.concat([predictions, test], axis=1)
+        print(predictions.head())
+        return predictions
+
 
     def save(self, path: str) -> None:
         self.predictions.to_csv(path)
+        json_path = path.split('.')[0] + '.json'
+        self.predictions.to_json(json_path)
 
     def get_predictions_for_slide(self, slide_id: str) -> np.ndarray:
         predictions = self.predictions.loc[self.predictions['slide_id'] == slide_id]['prediction']

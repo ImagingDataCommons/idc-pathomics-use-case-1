@@ -110,6 +110,7 @@ def _assign_patients(patient_metadata: pd.DataFrame, patient_to_category: Dict[s
     nr_tiles_to_test = int(0.15 * nr_all_tiles)
     nr_tiles_to_valid = int(0.15 * nr_all_tiles)
 
+    patient_metadata = patient_metadata.sample(frac=1).reset_index(drop=True) # shuffle rows 
     for _, row in patient_metadata.iterrows():
         patient_id, nr_tiles_patient = row['patient_id'], row[tiles_to_consider]
 
