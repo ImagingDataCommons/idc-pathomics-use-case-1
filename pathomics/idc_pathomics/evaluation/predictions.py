@@ -43,9 +43,7 @@ class Predictions():
         }
         predictions = pd.DataFrame.from_dict(predictions_dict, orient='index')
         test = pd.DataFrame(predictions['prediction'].to_list())
-        print('test', test)
         predictions = pd.concat([predictions, test], axis=1)
-        print(predictions.head())
         return predictions
 
 

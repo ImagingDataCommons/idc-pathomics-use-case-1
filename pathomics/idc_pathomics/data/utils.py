@@ -5,7 +5,7 @@ from openslide import open_slide
 from multiprocessing import Process
 from typing import List
 
-from .tile_generation_cptac import _get_path_to_slide_from_gcs_url
+from .tile_generation import _get_path_to_slide_from_gcs_url
 
 
 def get_slide_tissue_type(slide_id: str, slides_metadata: pd.DataFrame) -> str:
