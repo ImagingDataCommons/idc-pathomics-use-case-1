@@ -37,14 +37,8 @@ class ROCAnalysis():
         auc = {}
         ci = defaultdict(list)
 
-        reference = []
-        prediction = []
-        all_slide_ids = list(set(predictions.predictions['slide_id'].tolist()))
-        for slide_id in all_slide_ids: 
-            reference.extend(predictions.get_all_reference_values_for_slide(slide_id))
-            prediction.extend(predictions.get_predictions_for_slide(slide_id))
-        reference = np.asarray(reference)
-        prediction = np.asarray(prediction) 
+        reference = predictions.predictions['reference_value'].to_numpy()
+        prediction = np.stack(predictions.predictions['prediction'].values)
 
         if self.num_classes == 2: 
             prediction = np.reshape(prediction, (1, -1)).squeeze()
